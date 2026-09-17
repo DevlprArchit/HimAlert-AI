@@ -1,0 +1,11 @@
+__MACOSX/
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+.env
+.DS_Store
+node_modules/
+.next/
