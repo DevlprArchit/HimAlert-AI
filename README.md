@@ -16,10 +16,7 @@
 
 Himachal Pradesh is highly exposed to sudden cloudbursts, catastrophic flash floods, landslides, and flash river surges along the Beas, Sutlej, and Ravi basins. **The gap is not a lack of data — it is fragmented intelligence.**
 
-### The Cost of Fragmentation
-- **72** lives lost in the catastrophic August 2023 Himalayan floods & landslides.
-- **100+** people reported missing after stationary cloudbursts.
-- **$1.2B+** estimated infrastructure, road, and agricultural losses.
+
 
 *Today, these signals are gathered in silos. HimAlert connects them into a single, real-time threat picture.*
 
