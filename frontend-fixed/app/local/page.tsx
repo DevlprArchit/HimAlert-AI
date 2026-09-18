@@ -35,6 +35,143 @@ const SafeZoneMap = dynamic(() => import("@/components/SafeZoneMap"), {
   ),
 });
 
+const translations = {
+  en: {
+    citizenSafetyView: "Citizen Safety View",
+    stateCommand: "State Command",
+    hpsdmaFullName: "Himachal Pradesh Disaster Management Authority",
+    redWarningBadge: "Flash Flood Red Warning",
+    hazardTitle: "CRITICAL FLASH FLOOD ALERT",
+    liveBroadcast: "LIVE BROADCAST",
+    affectedAreasLabel: "Affected Areas: ",
+    affectedAreas: "Kangra & Mandi Valley Districts",
+    validUntilLabel: "Valid Until: ",
+    validUntil: "8:00 PM Tonight (14 Sep)",
+    whatHappeningTitle: "1. What is happening?",
+    whatHappeningBody: "Extremely heavy rainfall causing sudden flash floods, debris flows, and dangerously surging nullahs across Dharamshala, Palampur, Baijnath, and Mandi valleys.",
+    mandatoryActionTitle: "2. Mandatory Action Right Now:",
+    actions: [
+      "Stay away from all riverbanks, streams, and nullahs immediately. Waters rise in minutes without warning.",
+      "Avoid traveling on hillside roads (NH-154 & Dharamshala corridors) due to active boulder fall.",
+      "Move immediately to higher, solid ground if residing near seasonal stream beds or slopes.",
+      "Do not park vehicles under vulnerable cliffs, mature pine trees, or unstable masonry.",
+    ],
+    helplineTitle: "One-Touch Emergency Helplines",
+    helplineSub: "Toll-Free • 24x7 Dedicated",
+    stateCell: "State Disaster Cell",
+    dcControl: "District Control (DC)",
+    autoBeacon: "Automated Beacon",
+    smsCoord: "SMS Coordinates",
+    sheltersTitle: "Designated Safe Shelters & Evacuation Centers",
+    sheltersSub: "3km emergency perimeter shelters, hospitals, colleges & staging grounds.",
+    gpsActive: "GPS Active",
+    nearestShelters: "Nearest Verified Safe Shelters (Within Walking Distance):",
+    safeShelterTag: "Safe Shelter",
+    minWalk: "min walk",
+    highwayTitle: "Key Highway & Mountain Pass Status",
+    updatedAgo: "Updated: 4 mins ago",
+    statusRestricted: "RESTRICTED",
+    statusClosed: "CLOSED",
+    statusOpen: "OPEN",
+    statusSlow: "SLOW",
+    road1Name: "Dharamshala – Kangra Road",
+    road1Desc: "Active rockfall cleared at Km 6. Single lane moving.",
+    road2Name: "Mandi – Kullu via Pandoh",
+    road2Desc: "Beas river water across carriage way near dam overflow.",
+    road3Name: "Shimla – Bilaspur Corridor",
+    road3Desc: "Dry surface conditions. Visibility 2.5 km.",
+    road4Name: "Pathankot – Palampur Highway",
+    road4Desc: "Emergency convoys active. Moderate delays expected.",
+    goBagTitle: "Offline Go-Bag & Survival Protocols",
+    goBagSub: "Essential emergency checklist if cellular connectivity drops",
+    offlineCache: "HP Offline Telemetry Cache Status",
+    readyOffline: "READY OFFLINE (24 MB)",
+    goBagHeader: "Immediate Go-Bag (5 Min Pack):",
+    goBagItems: [
+      "Waterproof document pouch (Aadhar/IDs, deeds)",
+      "High-power LED torch + spare batteries",
+      "72-hour non-perishable rations & water tablets",
+      "Essential prescription medicines + first aid",
+      "Thermal blanket / woolens & whistle",
+    ],
+    homeShutdownHeader: "Home Shutdown Safety:",
+    homeShutdownItems: [
+      "Turn off main electricity MCB breaker",
+      "Shut off LPG gas cylinder valve securely",
+      "Unplug rooftop solar/inverter feeds",
+      "Lock outer doors and move uphill",
+    ],
+    smsSentText: (coords: string) => `Automated emergency beacon with coordinates (${coords}) sent to HP Emergency Response Support System (112).`,
+  },
+  hi: {
+    citizenSafetyView: "नागरिक सुरक्षा दृश्य",
+    stateCommand: "राज्य नियंत्रण कक्ष",
+    hpsdmaFullName: "हिमाचल प्रदेश राज्य आपदा प्रबंधन प्राधिकरण",
+    redWarningBadge: "आकस्मिक बाढ़ लाल चेतावनी",
+    hazardTitle: "गंभीर आकस्मिक बाढ़ अलर्ट",
+    liveBroadcast: "लाइव प्रसारण",
+    affectedAreasLabel: "प्रभावित क्षेत्र: ",
+    affectedAreas: "कांगड़ा और मंडी घाटी जिले",
+    validUntilLabel: "वैधता: ",
+    validUntil: "आज रात 8:00 बजे तक (14 सितम्बर)",
+    whatHappeningTitle: "1. क्या हो रहा है?",
+    whatHappeningBody: "अत्यधिक भारी बारिश के कारण धर्मशाला, पालमपुर, बैजनाथ और मंडी घाटियों में अचानक बाढ़, मलबा प्रवाह और नालों में खतरनाक उफान आ रहा है।",
+    mandatoryActionTitle: "2. तुरंत अनिवार्य कदम:",
+    actions: [
+      "तुरंत सभी नदी तटों, नालों और खड्डों से दूर रहें। बिना किसी पूर्व चेतावनी के पानी मिनटों में बढ़ जाता है।",
+      "सक्रिय भूस्खलन व गिरती चट्टानों के कारण पहाड़ी सड़कों (NH-154 और धर्मशाला मार्ग) पर यात्रा न करें।",
+      "यदि आप मौसमी नालों या ढलानों के पास रहते हैं तो तुरंत ऊंचाई वाले सुरक्षित स्थानों पर जाएं।",
+      "कमजोर चट्टानों, ऊंचे चीड़ के पेड़ों या जर्जर दीवारों के नीचे वाहन पार्क न करें।",
+    ],
+    helplineTitle: "आपातकालीन हेल्पलाइन (एक-क्लिक कॉल)",
+    helplineSub: "टोल-फ्री • 24x7 समर्पित सहायता",
+    stateCell: "राज्य आपदा प्रकोष्ठ",
+    dcControl: "जिला नियंत्रण कक्ष (DC)",
+    autoBeacon: "स्वचालित आपातकालीन बीकन",
+    smsCoord: "एसएमएस जीपीएस निर्देशांक",
+    sheltersTitle: "निर्धारित सुरक्षित आश्रय एवं राहत केंद्र",
+    sheltersSub: "3 किमी आपातकालीन परिधि में आश्रय स्थल, अस्पताल और कॉलेज परिसर।",
+    gpsActive: "जीपीएस सक्रिय",
+    nearestShelters: "निकटतम सत्यापित सुरक्षित आश्रय स्थल (पैदल दूरी):",
+    safeShelterTag: "सुरक्षित आश्रय",
+    minWalk: "मिनट पैदल",
+    highwayTitle: "प्रमुख राजमार्ग एवं पहाड़ी दर्रों की स्थिति",
+    updatedAgo: "अद्यतन: 4 मिनट पहले",
+    statusRestricted: "प्रतिबंधित",
+    statusClosed: "बंद",
+    statusOpen: "खुला",
+    statusSlow: "धीमा",
+    road1Name: "धर्मशाला – कांगड़ा मार्ग",
+    road1Desc: "किमी 6 पर मलबा हटाया गया। सिंगल लेन यातायात जारी।",
+    road2Name: "मंडी – कुल्लू वाया पंडोह",
+    road2Desc: "पंडोह बांध ओवरफ्लो के कारण ब्यास नदी का पानी सड़क पर।",
+    road3Name: "शिमला – बिलासपुर कॉरिडोर",
+    road3Desc: "सड़क सूखी एवं सामान्य। दृश्यता 2.5 किमी।",
+    road4Name: "पठानकोट – पालमपुर राजमार्ग",
+    road4Desc: "आपातकालीन काफिले सक्रिय। मध्यम देरी संभावित।",
+    goBagTitle: "ऑफलाइन आपातकालीन बैग और जीवन रक्षक नियम",
+    goBagSub: "मोबाइल नेटवर्क बंद होने की स्थिति में आवश्यक आपातकालीन चेकलिस्ट",
+    offlineCache: "एचपी ऑफलाइन टेलीमेट्री डेटा स्थिति",
+    readyOffline: "ऑफलाइन उपलब्ध (24 MB)",
+    goBagHeader: "त्वरित गो-बैग (5 मिनट की पैकिंग):",
+    goBagItems: [
+      "वॉटरप्रूफ दस्तावेज पाउच (आधार/पहचान पत्र, जरूरी दस्तावेज)",
+      "उच्च क्षमता वाली एलईडी टॉर्च + अतिरिक्त बैटरी",
+      "72 घंटे का सूखा राशन और पानी शुद्ध करने की गोलियां",
+      "आवश्यक नियमित दवाएं + प्राथमिक चिकित्सा किट",
+      "थर्मल कंबल / गर्म कपड़े और आपातकालीन सीटी",
+    ],
+    homeShutdownHeader: "घर खाली करते समय सुरक्षा उपाय:",
+    homeShutdownItems: [
+      "घर का मुख्य बिजली स्विच (MCB) बंद करें",
+      "एलपीजी गैस सिलेंडर का रेगुलेटर वाल्व सुरक्षित रूप से बंद करें",
+      "छत पर लगे सोलर/इन्वर्टर कनेक्शन डिस्कनेक्ट करें",
+      "बाहरी दरवाजों पर ताला लगाएं और तुरंत ऊंचाई पर जाएं",
+    ],
+    smsSentText: (coords: string) => `जीपीएस निर्देशांक (${coords}) के साथ स्वचालित आपातकालीन संदेश हिमाचल आपातकालीन सेवा (112) को भेज दिया गया है।`,
+  },
+};
+
 export default function PublicCitizenSafetyView() {
   const [lang, setLang] = useState<"en" | "hi">("en");
   const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
@@ -43,6 +180,8 @@ export default function PublicCitizenSafetyView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showOfflineGuide, setShowOfflineGuide] = useState(false);
   const [smsStatus, setSmsStatus] = useState<string | null>(null);
+
+  const t = translations[lang];
 
   // Auto-acquire user location
   useEffect(() => {
@@ -84,8 +223,8 @@ export default function PublicCitizenSafetyView() {
 
   const handleSendSMS = () => {
     const coords = userLocation ? `${userLocation.lat.toFixed(4)}, ${userLocation.lon.toFixed(4)}` : "32.2190, 76.3234";
-    setSmsStatus(`Automated emergency beacon with coordinates (${coords}) sent to HP Emergency Response Support System (112).`);
-    setTimeout(() => setSmsStatus(null), 4000);
+    setSmsStatus(t.smsSentText(coords));
+    setTimeout(() => setSmsStatus(null), 4500);
   };
 
   return (
@@ -103,7 +242,7 @@ export default function PublicCitizenSafetyView() {
             </Link>
             <HimAlertLogo className="h-7" />
             <div className="h-4 w-px bg-[#DCE4DF] hidden sm:block"></div>
-            <span className="text-xs font-bold text-[#5D6B63] hidden sm:inline">Citizen Safety View</span>
+            <span className="text-xs font-bold text-[#5D6B63] hidden sm:inline">{t.citizenSafetyView}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -111,7 +250,7 @@ export default function PublicCitizenSafetyView() {
               href="/"
               className="h-8 px-2.5 rounded bg-[#012016] text-white text-[11px] font-bold flex items-center gap-1 hover:bg-[#17352A] transition-all"
             >
-              <span>State Command</span>
+              <span>{t.stateCommand}</span>
             </Link>
           </div>
         </div>
@@ -122,7 +261,7 @@ export default function PublicCitizenSafetyView() {
             <span className="text-[#B0F1CB] font-bold uppercase tracking-wider text-[11px]">HPSDMA</span>
             <span className="text-white/40">•</span>
             <span className="truncate text-white/90 text-[11px]">
-              Himachal Pradesh Disaster Management Authority
+              {t.hpsdmaFullName}
             </span>
           </div>
 
@@ -130,7 +269,7 @@ export default function PublicCitizenSafetyView() {
             <div className="inline-flex rounded bg-[#17352A] p-0.5 text-[11px]">
               <button
                 onClick={() => setLang("en")}
-                className={`px-2 py-0.5 rounded font-semibold transition-all ${
+                className={`px-2.5 py-0.5 rounded font-semibold transition-all ${
                   lang === "en" ? "bg-[#B0F1CB] text-[#002112]" : "text-[#7E9E90] hover:text-white"
                 }`}
               >
@@ -138,7 +277,7 @@ export default function PublicCitizenSafetyView() {
               </button>
               <button
                 onClick={() => setLang("hi")}
-                className={`px-2 py-0.5 rounded font-semibold transition-all ${
+                className={`px-2.5 py-0.5 rounded font-semibold transition-all ${
                   lang === "hi" ? "bg-[#B0F1CB] text-[#002112]" : "text-[#7E9E90] hover:text-white"
                 }`}
               >
@@ -160,68 +299,68 @@ export default function PublicCitizenSafetyView() {
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-widest bg-white/20 px-2 py-0.5 rounded inline-block">
-                  Flash Flood Red Warning
+                  {t.redWarningBadge}
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
-                  CRITICAL FLASH FLOOD ALERT
+                  {t.hazardTitle}
                 </h2>
               </div>
             </div>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white text-[#BA1A1A] text-xs font-black shrink-0 animate-pulse shadow-sm">
               <span className="w-2 h-2 rounded-full bg-[#BA1A1A]"></span>
-              LIVE BROADCAST
+              {t.liveBroadcast}
             </span>
           </div>
 
           <div className="bg-white/15 rounded-lg p-2.5 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
             <div>
-              <span className="font-bold uppercase">Affected Areas: </span>
-              <span>Kangra & Mandi Valley Districts</span>
+              <span className="font-bold uppercase">{t.affectedAreasLabel}</span>
+              <span>{t.affectedAreas}</span>
             </div>
             <div>
-              <span className="font-bold uppercase">Valid Until: </span>
-              <span>8:00 PM Tonight (14 Sep)</span>
+              <span className="font-bold uppercase">{t.validUntilLabel}</span>
+              <span>{t.validUntil}</span>
             </div>
           </div>
 
           {/* What is Happening */}
           <div className="bg-black/15 p-3 sm:p-3.5 rounded-lg text-xs sm:text-sm">
             <h3 className="font-bold uppercase tracking-wider text-white/90 mb-1">
-              1. What is happening?
+              {t.whatHappeningTitle}
             </h3>
             <p className="leading-relaxed text-white/95">
-              Extremely heavy rainfall causing sudden flash floods, debris flows, and dangerously surging nullahs across Dharamshala, Palampur, Baijnath, and Mandi valleys.
+              {t.whatHappeningBody}
             </p>
           </div>
 
           {/* Mandatory Actions Right Now */}
           <div className="bg-white text-[#181C1B] p-4 sm:p-5 rounded-lg shadow-inner flex flex-col gap-2.5">
             <h3 className="text-xs sm:text-sm font-black text-[#BA1A1A] uppercase tracking-wider">
-              2. Mandatory Action Right Now:
+              {t.mandatoryActionTitle}
             </h3>
             <ul className="space-y-2 text-xs sm:text-sm">
               <li className="flex items-start gap-2">
                 <span className="text-[#BA1A1A] font-black">•</span>
                 <span className="font-semibold text-[#BA1A1A]">
-                  Stay away from all riverbanks, streams, and nullahs immediately. Waters rise in minutes without warning.
+                  {t.actions[0]}
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#012016] font-black">•</span>
                 <span>
-                  Avoid traveling on hillside roads (NH-154 & Dharamshala corridors) due to active boulder fall.
+                  {t.actions[1]}
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#2C694C] font-black">•</span>
                 <span className="font-bold text-[#012016]">
-                  Move immediately to higher, solid ground if residing near seasonal stream beds or slopes.
+                  {t.actions[2]}
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#012016] font-black">•</span>
                 <span>
-                  Do not park vehicles under vulnerable cliffs, mature pine trees, or unstable masonry.
+                  {t.actions[3]}
                 </span>
               </li>
             </ul>
@@ -232,9 +371,9 @@ export default function PublicCitizenSafetyView() {
         <section className="flex flex-col gap-2">
           <div className="flex items-center justify-between text-xs">
             <h3 className="font-bold uppercase tracking-wider text-[#012016]">
-              One-Touch Emergency Helplines
+              {t.helplineTitle}
             </h3>
-            <span className="text-[#5D6B63] font-mono font-semibold">Toll-Free • 24x7 Dedicated</span>
+            <span className="text-[#5D6B63] font-mono font-semibold">{t.helplineSub}</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -247,7 +386,7 @@ export default function PublicCitizenSafetyView() {
                   <PhoneCall className="w-5 h-5" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-[#7E9E90] uppercase font-bold tracking-wider">State Disaster Cell</span>
+                  <span className="text-[10px] text-[#7E9E90] uppercase font-bold tracking-wider">{t.stateCell}</span>
                   <span className="text-xl font-black tracking-tight">1070</span>
                 </div>
               </div>
@@ -262,7 +401,7 @@ export default function PublicCitizenSafetyView() {
                   <Phone className="w-5 h-5" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-[#B0F1CB] uppercase font-bold tracking-wider">District Control (DC)</span>
+                  <span className="text-[10px] text-[#B0F1CB] uppercase font-bold tracking-wider">{t.dcControl}</span>
                   <span className="text-xl font-black tracking-tight">1077</span>
                 </div>
               </div>
@@ -277,8 +416,8 @@ export default function PublicCitizenSafetyView() {
                   <Navigation className="w-5 h-5" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-[#5D6B63] uppercase font-bold tracking-wider">Automated Beacon</span>
-                  <span className="text-sm font-bold text-[#BA1A1A]">SMS Coordinates</span>
+                  <span className="text-[10px] text-[#5D6B63] uppercase font-bold tracking-wider">{t.autoBeacon}</span>
+                  <span className="text-sm font-bold text-[#BA1A1A]">{t.smsCoord}</span>
                 </div>
               </div>
               <Send className="w-4 h-4 text-[#5D6B63]" />
@@ -298,14 +437,14 @@ export default function PublicCitizenSafetyView() {
             <div>
               <h3 className="text-base sm:text-lg font-bold text-[#012016] tracking-tight flex items-center gap-2">
                 <ShieldAlert className="w-5 h-5 text-[#2C694C]" />
-                Designated Safe Shelters & Evacuation Centers
+                {t.sheltersTitle}
               </h3>
               <p className="text-xs text-[#5D6B63] mt-0.5">
-                3km emergency perimeter shelters, hospitals, colleges & staging grounds.
+                {t.sheltersSub}
               </p>
             </div>
             <span className="text-[10px] font-mono text-[#2C694C] bg-[#B0F1CB]/50 px-2 py-0.5 rounded border border-[#2C694C]/30 font-bold shrink-0">
-              GPS Active
+              {t.gpsActive}
             </span>
           </div>
 
@@ -317,7 +456,7 @@ export default function PublicCitizenSafetyView() {
           {/* Closest Shelters List */}
           <div className="flex flex-col gap-2 pt-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#5D6B63]">
-              Nearest Verified Safe Shelters (Within Walking Distance):
+              {t.nearestShelters}
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {safePoints.slice(0, 4).map((sp, idx) => (
@@ -328,12 +467,12 @@ export default function PublicCitizenSafetyView() {
                     </div>
                     <div className="min-w-0">
                       <h4 className="font-bold text-[#012016] truncate">{sp.name}</h4>
-                      <span className="text-[10px] text-[#5D6B63] uppercase">{sp.type || "Safe Shelter"}</span>
+                      <span className="text-[10px] text-[#5D6B63] uppercase">{sp.type || t.safeShelterTag}</span>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <span className="font-mono font-bold text-[#2C694C] block">0.{idx + 4} km</span>
-                    <span className="text-[10px] text-[#5D6B63]">~{idx * 4 + 7} min walk</span>
+                    <span className="text-[10px] text-[#5D6B63]">~{idx * 4 + 7} {t.minWalk}</span>
                   </div>
                 </div>
               ))}
@@ -347,10 +486,10 @@ export default function PublicCitizenSafetyView() {
             <div className="flex items-center gap-2">
               <Car className="w-5 h-5 text-[#012016]" />
               <h3 className="text-base sm:text-lg font-bold text-[#012016] tracking-tight">
-                Key Highway & Mountain Pass Status
+                {t.highwayTitle}
               </h3>
             </div>
-            <span className="text-[11px] font-mono text-[#5D6B63]">Updated: 4 mins ago</span>
+            <span className="text-[11px] font-mono text-[#5D6B63]">{t.updatedAgo}</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -360,12 +499,12 @@ export default function PublicCitizenSafetyView() {
                   NH154
                 </span>
                 <div>
-                  <h4 className="font-bold text-[#012016]">Dharamshala – Kangra Road</h4>
-                  <p className="text-[11px] text-[#5D6B63]">Active rockfall cleared at Km 6. Single lane moving.</p>
+                  <h4 className="font-bold text-[#012016]">{t.road1Name}</h4>
+                  <p className="text-[11px] text-[#5D6B63]">{t.road1Desc}</p>
                 </div>
               </div>
               <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-amber-100 text-amber-900 shrink-0">
-                RESTRICTED
+                {t.statusRestricted}
               </span>
             </div>
 
@@ -375,12 +514,12 @@ export default function PublicCitizenSafetyView() {
                   NH21
                 </span>
                 <div>
-                  <h4 className="font-bold text-[#012016]">Mandi – Kullu via Pandoh</h4>
-                  <p className="text-[11px] text-[#5D6B63]">Beas river water across carriage way near dam overflow.</p>
+                  <h4 className="font-bold text-[#012016]">{t.road2Name}</h4>
+                  <p className="text-[11px] text-[#5D6B63]">{t.road2Desc}</p>
                 </div>
               </div>
               <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-[#FFDAD6] text-[#93000A] shrink-0">
-                CLOSED
+                {t.statusClosed}
               </span>
             </div>
 
@@ -390,12 +529,12 @@ export default function PublicCitizenSafetyView() {
                   NH205
                 </span>
                 <div>
-                  <h4 className="font-bold text-[#012016]">Shimla – Bilaspur Corridor</h4>
-                  <p className="text-[11px] text-[#5D6B63]">Dry surface conditions. Visibility 2.5 km.</p>
+                  <h4 className="font-bold text-[#012016]">{t.road3Name}</h4>
+                  <p className="text-[11px] text-[#5D6B63]">{t.road3Desc}</p>
                 </div>
               </div>
               <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-[#B0F1CB] text-[#002112] shrink-0">
-                OPEN
+                {t.statusOpen}
               </span>
             </div>
 
@@ -405,12 +544,12 @@ export default function PublicCitizenSafetyView() {
                   SH17
                 </span>
                 <div>
-                  <h4 className="font-bold text-[#012016]">Pathankot – Palampur Highway</h4>
-                  <p className="text-[11px] text-[#5D6B63]">Emergency convoys active. Moderate delays expected.</p>
+                  <h4 className="font-bold text-[#012016]">{t.road4Name}</h4>
+                  <p className="text-[11px] text-[#5D6B63]">{t.road4Desc}</p>
                 </div>
               </div>
               <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-amber-100 text-amber-900 shrink-0">
-                SLOW
+                {t.statusSlow}
               </span>
             </div>
           </div>
@@ -428,9 +567,9 @@ export default function PublicCitizenSafetyView() {
               </div>
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-[#012016]">
-                  Offline Go-Bag & Survival Protocols
+                  {t.goBagTitle}
                 </h3>
-                <p className="text-xs text-[#5D6B63]">Essential emergency checklist if cellular connectivity drops</p>
+                <p className="text-xs text-[#5D6B63]">{t.goBagSub}</p>
               </div>
             </div>
             {showOfflineGuide ? <ChevronUp className="w-5 h-5 text-[#5D6B63]" /> : <ChevronDown className="w-5 h-5 text-[#5D6B63]" />}
@@ -439,33 +578,30 @@ export default function PublicCitizenSafetyView() {
           {showOfflineGuide && (
             <div className="pt-2 flex flex-col gap-3 border-t border-[#DCE4DF] text-xs">
               <div className="p-2.5 rounded-lg bg-[#F1F4F2] flex items-center justify-between font-mono">
-                <span className="font-semibold text-[#012016]">HP Offline Telemetry Cache Status</span>
-                <span className="text-[#2C694C] font-bold">READY OFFLINE (24 MB)</span>
+                <span className="font-semibold text-[#012016]">{t.offlineCache}</span>
+                <span className="text-[#2C694C] font-bold">{t.readyOffline}</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="p-3 rounded-lg bg-[#F7FAF8] border border-[#DCE4DF] space-y-1.5">
                   <h4 className="font-bold text-[#012016] uppercase text-[11px] tracking-wider">
-                    Immediate Go-Bag (5 Min Pack):
+                    {t.goBagHeader}
                   </h4>
                   <ul className="space-y-1 text-[#414845]">
-                    <li>✓ Waterproof document pouch (Aadhar/IDs, deeds)</li>
-                    <li>✓ High-power LED torch + spare batteries</li>
-                    <li>✓ 72-hour non-perishable rations & water tablets</li>
-                    <li>✓ Essential prescription medicines + first aid</li>
-                    <li>✓ Thermal blanket / woolens & whistle</li>
+                    {t.goBagItems.map((item, i) => (
+                      <li key={i}>✓ {item}</li>
+                    ))}
                   </ul>
                 </div>
 
                 <div className="p-3 rounded-lg bg-[#F7FAF8] border border-[#DCE4DF] space-y-1.5">
                   <h4 className="font-bold text-[#012016] uppercase text-[11px] tracking-wider">
-                    Home Shutdown Safety:
+                    {t.homeShutdownHeader}
                   </h4>
                   <ul className="space-y-1 text-[#414845]">
-                    <li>✓ Turn off main electricity MCB breaker</li>
-                    <li>✓ Shut off LPG gas cylinder valve securely</li>
-                    <li>✓ Unplug rooftop solar/inverter feeds</li>
-                    <li>✓ Lock outer doors and move uphill</li>
+                    {t.homeShutdownItems.map((item, i) => (
+                      <li key={i}>✓ {item}</li>
+                    ))}
                   </ul>
                 </div>
               </div>

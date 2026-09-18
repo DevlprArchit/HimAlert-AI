@@ -32,62 +32,62 @@ const ALL_RIVERS: River[] = [
   {
     name: "Beas",
     basin: "Beas Basin (Mandi / Kullu)",
-    risk: 68,
-    status: "HIGH",
-    flow: 74,
-    trend: "RISING",
-    rainfall: 18.4,
-    saturation: 78,
-    forecast: [64, 68, 72, 79, 84],
-    dangerLevel: "Warning Stage (782.4 m)",
+    risk: 18,
+    status: "LOW",
+    flow: 22,
+    trend: "STABLE",
+    rainfall: 1.4,
+    saturation: 45,
+    forecast: [18, 20, 22, 21, 20],
+    dangerLevel: "Normal Flow (Within Safe Bank Limits)",
   },
   {
     name: "Sutlej",
     basin: "Sutlej Basin (Shimla / Bilaspur)",
-    risk: 84,
-    status: "CRITICAL",
-    flow: 89,
-    trend: "RISING",
-    rainfall: 26.8,
-    saturation: 91,
-    forecast: [78, 83, 87, 92, 96],
-    dangerLevel: "Danger Threshold Exceeded",
+    risk: 22,
+    status: "LOW",
+    flow: 25,
+    trend: "STABLE",
+    rainfall: 0.8,
+    saturation: 42,
+    forecast: [22, 22, 23, 24, 22],
+    dangerLevel: "Normal Flow (Gobind Sagar Inflow Steady)",
   },
   {
     name: "Ravi",
     basin: "Ravi Basin (Chamba / Kangra)",
-    risk: 46,
-    status: "MODERATE",
-    flow: 52,
-    trend: "RISING",
-    rainfall: 11.2,
-    saturation: 62,
-    forecast: [42, 45, 48, 54, 60],
+    risk: 15,
+    status: "LOW",
+    flow: 18,
+    trend: "STABLE",
+    rainfall: 0.5,
+    saturation: 40,
+    forecast: [15, 16, 17, 16, 15],
     dangerLevel: "Normal Alert Band",
   },
   {
     name: "Chenab",
     basin: "Chenab Basin (Lahaul-Spiti)",
-    risk: 32,
+    risk: 12,
     status: "LOW",
-    flow: 38,
+    flow: 15,
     trend: "STABLE",
-    rainfall: 4.1,
-    saturation: 41,
-    forecast: [34, 33, 32, 34, 31],
+    rainfall: 0.2,
+    saturation: 32,
+    forecast: [12, 12, 13, 12, 11],
     dangerLevel: "Within Safe Limit",
   },
   {
     name: "Parvati",
     basin: "Parvati Valley (Upper Kullu)",
-    risk: 72,
-    status: "HIGH",
-    flow: 78,
-    trend: "RISING",
-    rainfall: 22.4,
-    saturation: 84,
-    forecast: [66, 70, 74, 80, 86],
-    dangerLevel: "Flash Flood Watch",
+    risk: 20,
+    status: "LOW",
+    flow: 24,
+    trend: "STABLE",
+    rainfall: 1.1,
+    saturation: 48,
+    forecast: [20, 21, 22, 21, 20],
+    dangerLevel: "Normal Mountain Runoff",
   },
 ];
 
@@ -157,14 +157,20 @@ export default function HydrologicalIntelligence({
   let liveStatus = selectedRiver.status;
 
   if (liveRiverData) {
-    if (selectedRiver.name === "Beas" && liveRiverData["Mandi"]) {
-      liveFlow = Math.min(100, Math.max(10, Math.round(liveRiverData["Mandi"].water_level / 5)));
-      liveTrend = liveRiverData["Mandi"].water_level > 200 ? "RISING" : "STABLE";
-      liveStatus = liveFlow > 80 ? "CRITICAL" : liveFlow > 50 ? "HIGH" : "MODERATE";
-    } else if (selectedRiver.name === "Ravi" && liveRiverData["Kangra"]) {
-      liveFlow = Math.min(100, Math.max(10, Math.round(liveRiverData["Kangra"].water_level * 5)));
-      liveTrend = liveRiverData["Kangra"].water_level > 50 ? "RISING" : "STABLE";
-      liveStatus = liveFlow > 80 ? "CRITICAL" : liveFlow > 50 ? "HIGH" : "MODERATE";
+    const locMap: Record<string, string> = {
+      Beas: "Mandi",
+      Ravi: "Kangra",
+      Sutlej: "Bilaspur",
+      Chenab: "Lahaul-Spiti",
+      Parvati: "Kullu",
+    };
+    const mappedLoc = locMap[selectedRiver.name] || "Dharamshala";
+    const riverEntry = liveRiverData[mappedLoc];
+    if (riverEntry && riverEntry.water_level !== undefined && riverEntry.water_level !== null) {
+      const rawLevel = Number(riverEntry.water_level);
+      liveFlow = Math.min(100, Math.max(5, Math.round(rawLevel > 100 ? rawLevel / 5 : rawLevel * 4)));
+      liveTrend = rawLevel > 100 ? "RISING" : "STABLE";
+      liveStatus = liveFlow > 75 ? "CRITICAL" : liveFlow > 50 ? "HIGH" : liveFlow > 30 ? "MODERATE" : "LOW";
     }
   }
 
@@ -190,10 +196,10 @@ export default function HydrologicalIntelligence({
   const styles = getRiskClass(liveStatus);
 
   const dischargeData = Object.entries(liveRiverData || {
-    Mandi: { water_level: 358.7 },
-    Kangra: { water_level: 142.3 },
-    Kullu: { water_level: 218.9 },
-    Shimla: { water_level: 489.1 },
+    Mandi: { water_level: 14.5 },
+    Kangra: { water_level: 8.2 },
+    Kullu: { water_level: 11.8 },
+    Shimla: { water_level: 16.2 },
   }).map(([basin, value]: [string, any]) => ({
     basin,
     discharge: Number(value?.water_level) || 0,

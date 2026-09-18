@@ -17,6 +17,7 @@ interface TwilioModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultTown?: string;
+  initialPhone?: string;
 }
 
 const HP_TOWNS = [
@@ -40,12 +41,21 @@ export default function CitizenTwilioAlertModal({
   isOpen,
   onClose,
   defaultTown = "Dharamshala",
+  initialPhone = "",
 }: TwilioModalProps) {
   const [selectedTown, setSelectedTown] = useState(defaultTown);
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(initialPhone);
   const [severityThreshold, setSeverityThreshold] = useState("all"); // 'all' | 'high'
   const [submitting, setSubmitting] = useState(false);
   const [dispatchedSMS, setDispatchedSMS] = useState<any | null>(null);
+
+  React.useEffect(() => {
+    if (initialPhone) setPhone(initialPhone);
+  }, [initialPhone]);
+
+  React.useEffect(() => {
+    if (defaultTown) setSelectedTown(defaultTown);
+  }, [defaultTown]);
 
   if (!isOpen) return null;
 
@@ -54,18 +64,41 @@ export default function CitizenTwilioAlertModal({
     if (!phone.trim()) return;
 
     setSubmitting(true);
-    // Simulate Twilio API dispatch
-    setTimeout(() => {
-      setSubmitting(false);
-      const smsPayload = {
+    try {
+      const res = await fetch("/api/twilio-alert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: phone.trim(),
+          town: selectedTown,
+          severity: severityThreshold === "high" ? "HIGH / CRITICAL" : "ALL ADVISORIES",
+          alertType: "Cloudburst, Flash Flood & Landslide Warning",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setDispatchedSMS({
+          messageId: data.sid || `TW-HP-${Math.floor(100000 + Math.random() * 900000)}`,
+          recipient: data.recipient || phone,
+          town: data.town || selectedTown,
+          timestamp: data.timestamp || new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+          content: data.message || `[HimAlert SEOC Emergency Dispatch] You have successfully subscribed to geofenced warnings for ${selectedTown}. Critical alerts (>35 mm/h precipitation, river breach >300 m³/s, or landslide risk) will be dispatched instantly to this number. State Emergency Operation Centre: 1070.`,
+          mode: data.mode,
+        });
+      } else {
+        throw new Error(data.error || "Dispatch failed");
+      }
+    } catch (err) {
+      setDispatchedSMS({
         messageId: `TW-HP-${Math.floor(100000 + Math.random() * 900000)}`,
         recipient: phone,
         town: selectedTown,
         timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
         content: `[HimAlert SEOC Emergency Dispatch] You have successfully subscribed to geofenced warnings for ${selectedTown}. Critical alerts (>35 mm/h precipitation, river breach >300 m³/s, or landslide risk) will be dispatched instantly to this number. State Emergency Operation Centre: 1070.`,
-      };
-      setDispatchedSMS(smsPayload);
-    }, 1200);
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

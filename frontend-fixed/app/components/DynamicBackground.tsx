@@ -1,64 +1,59 @@
-import React from 'react';
+"use client";
 
-// A mapping of weather conditions to beautiful Unsplash images
-const backgroundImages: Record<string, string> = {
-  'Sunny': 'https://images.unsplash.com/photo-1601297183305-6df142704ea2?q=80&w=2574',
-  'Clear': 'https://images.unsplash.com/photo-1601297183305-6df142704ea2?q=80&w=2574',
-  'Partly Cloudy': 'https://images.unsplash.com/photo-1595853035070-59a39fb7fa94?q=80&w=2000',
-  'Cloudy': 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?q=80&w=2000',
-  'Overcast': 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?q=80&w=2000',
-  'Rain': 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=2000',
-  'Showers': 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=2000',
-  'Thunderstorm': 'https://images.unsplash.com/photo-1605727216801-e27ce1d0ce49?q=80&w=2000',
-  'Snow': 'https://images.unsplash.com/photo-1542601098-8fc114e148e2?q=80&w=2000',
-  'Fog': 'https://images.unsplash.com/photo-1487621167305-5d248087c724?q=80&w=2000',
-  'Mist': 'https://images.unsplash.com/photo-1487621167305-5d248087c724?q=80&w=2000',
-};
+import React from "react";
 
-// Default fallback
-const defaultBg = 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?q=80&w=2000'; // Moody clouds
-
-export default function DynamicBackground({ 
-  condition, 
-  mode = "individual",
-  children 
-}: { 
-  condition?: string; 
+export default function DynamicBackground({
+  condition,
+  mode = "authority",
+  children,
+}: {
+  condition?: string;
   mode?: "individual" | "authority";
   children: React.ReactNode;
 }) {
-  let matchedBg = defaultBg;
-  
-  if (condition) {
-    const lowerCondition = condition.toLowerCase();
-    for (const [key, url] of Object.entries(backgroundImages)) {
-      if (lowerCondition.includes(key.toLowerCase())) {
-        matchedBg = url;
-        break;
-      }
-    }
-  }
-
-  const modeBackground = mode === "authority"
-    ? "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?q=80&w=2200"
-    : "https://images.unsplash.com/photo-1500534623283-312aade485b7?q=80&w=2200";
-  const activeBackground = condition ? matchedBg : modeBackground;
-
   return (
-    <div className="relative min-h-screen w-full">
-      {/* Background Image Layer */}
-      <div
-        className="fixed inset-0 w-full h-full bg-cover bg-center bg-no-repeat transition-all duration-1000 -z-20 saturate-[0.7]"
-        style={{ backgroundImage: `url('${activeBackground}')` }}
-      />
-      {/* Overlay to ensure text readability */}
-      <div className="fixed inset-0 w-full h-full bg-slate-950/70 backdrop-blur-[3px] -z-10" />
-      <div className="fixed inset-0 w-full h-full bg-gradient-to-b from-cyan-950/20 via-slate-950/30 to-slate-950/90 -z-10" />
-      
-      {/* Content Layer */}
-      <div className="relative z-10 w-full">
-        {children}
+    <div className="relative min-h-screen w-full bg-[#F7FAF8] overflow-x-hidden selection:bg-[#2C694C]/20">
+      {/* 1. Dreamcore Ambient Lighting Canvas (Floating Slow Orbs) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-20">
+        {/* Top Left Alpine Pine Aurora */}
+        <div
+          className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full bg-gradient-to-br from-[#2C694C]/20 via-[#B0F1CB]/25 to-transparent blur-[120px] animate-dreamcore-aura"
+          style={{ animationDuration: "14s" }}
+        />
+
+        {/* Top Right Ethereal Moonlight Glow */}
+        <div
+          className="absolute top-10 -right-20 w-[550px] h-[550px] rounded-full bg-gradient-to-bl from-[#B0F1CB]/30 via-[#2C694C]/15 to-transparent blur-[130px] animate-dreamcore-aura"
+          style={{ animationDuration: "18s", animationDelay: "-4s" }}
+        />
+
+        {/* Center-Left Mountain Twilight Mist */}
+        <div
+          className="absolute top-1/2 -left-40 w-[650px] h-[650px] rounded-full bg-gradient-to-tr from-[#17352A]/15 via-[#72DA9F]/15 to-transparent blur-[140px] animate-dreamcore-aura"
+          style={{ animationDuration: "22s", animationDelay: "-8s" }}
+        />
+
+        {/* Bottom Right Golden Amber Accent */}
+        <div
+          className="absolute -bottom-20 right-10 w-[500px] h-[500px] rounded-full bg-gradient-to-tl from-[#FFE088]/20 via-[#B0F1CB]/15 to-transparent blur-[120px] animate-dreamcore-aura"
+          style={{ animationDuration: "16s", animationDelay: "-6s" }}
+        />
       </div>
+
+      {/* 2. Dreamcore Tactile Noise & Grain Overlay */}
+      <div className="dreamcore-noise fixed inset-0 pointer-events-none -z-10" />
+
+      {/* 3. Subtle Atmospheric Grid Lines (Signature Motion Sites) */}
+      <div
+        className="fixed inset-0 pointer-events-none -z-10 opacity-[0.35]"
+        style={{
+          backgroundImage: `radial-gradient(rgba(44, 105, 76, 0.12) 1px, transparent 1px)`,
+          backgroundSize: "32px 32px",
+        }}
+      />
+
+      {/* 4. Content Layer */}
+      <div className="relative z-10 w-full">{children}</div>
     </div>
   );
 }

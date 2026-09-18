@@ -13,12 +13,15 @@ import {
   Map, 
   Waves, 
   Building2, 
-  Radio
+  Radio,
+  Bell,
+  CloudRain
 } from "lucide-react";
 
 interface AuthorityHeaderProps {
   onOpenSitRep?: () => void;
   onOpenPhoneConnect?: () => void;
+  onOpenTwilio?: () => void;
   activeTab?: string;
   onSelectTab?: (tab: string) => void;
   onRefresh?: () => void;
@@ -27,6 +30,8 @@ interface AuthorityHeaderProps {
 
 export default function AuthorityHeader({
   onOpenSitRep,
+  onOpenPhoneConnect,
+  onOpenTwilio,
   activeTab = "overview",
   onSelectTab,
   onRefresh,
@@ -63,13 +68,14 @@ export default function AuthorityHeader({
     { id: "map", label: "GIS Radar", icon: Map },
     { id: "rivers", label: "River Basins", icon: Waves },
     { id: "districts", label: "All 12 Districts", icon: Building2 },
+    { id: "simulator", label: "Rain Simulator", icon: CloudRain },
     { id: "alerts", label: "Emergency Alerts", icon: AlertTriangle, badge: alertCount },
   ];
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#DCE4DF] shadow-[0_1px_4px_rgba(23,53,42,0.04)]">
       {/* Top Application Bar */}
-      <div className="max-w-[92rem] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-[92rem] mx-auto px-4 sm:px-6 min-h-[4rem] py-2 flex flex-wrap items-center justify-between gap-4">
         
         {/* Logo & Operational Sector */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
@@ -93,7 +99,7 @@ export default function AuthorityHeader({
 
         {/* Desktop View Navigation Tabs */}
         {onSelectTab && (
-          <nav className="hidden lg:flex items-center gap-1 bg-[#F1F4F2] p-1 rounded-xl border border-[#DCE4DF]">
+          <nav className="hidden xl:flex items-center flex-wrap gap-1 bg-[#F1F4F2] p-1 rounded-xl border border-[#DCE4DF]">
             {navTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -121,7 +127,7 @@ export default function AuthorityHeader({
         )}
 
         {/* Tactical Actions & Nav */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
           {/* Refresh Action */}
           <button
             onClick={handleRefresh}
@@ -132,6 +138,18 @@ export default function AuthorityHeader({
             <RefreshCw className={`w-3.5 h-3.5 text-[#2C694C] ${isRefreshing ? "animate-spin" : ""}`} />
             <span className="hidden md:inline">Sync</span>
           </button>
+
+          {/* Twilio SMS Alert Button */}
+          {onOpenTwilio && (
+            <button
+              onClick={onOpenTwilio}
+              className="h-9 px-2.5 sm:px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+              title="Send Twilio Geofenced SMS Alert"
+            >
+              <Bell className="w-3.5 h-3.5 text-white animate-bounce" />
+              <span className="hidden md:inline">Twilio SMS</span>
+            </button>
+          )}
 
           {/* SitRep Modal Button */}
           {onOpenSitRep && (
@@ -148,7 +166,7 @@ export default function AuthorityHeader({
           {onOpenPhoneConnect && (
             <button
               onClick={onOpenPhoneConnect}
-              className="h-9 px-2.5 sm:px-3 rounded-lg bg-[#012016] hover:bg-[#17352A] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+              className="h-9 px-2.5 sm:px-3 rounded-lg bg-[#012016] hover:bg-[#17352A] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 border border-[#2C694C]/40"
               title="Open HimAlert on your mobile phone"
             >
               <span>📱</span>
@@ -168,7 +186,13 @@ export default function AuthorityHeader({
       </div>
 
       {/* Active Incident Advisory Strip */}
-      <aside className="bg-[#012016] text-white px-4 sm:px-6 py-2 flex items-center justify-between gap-3 text-xs shadow-inner">
+      <aside 
+        onClick={() => {
+          if (onSelectTab) onSelectTab("alerts");
+          else if (onOpenSitRep) onOpenSitRep();
+        }}
+        className="bg-[#012016] hover:bg-[#072d20] cursor-pointer text-white px-4 sm:px-6 py-2 flex items-center justify-between gap-3 text-xs shadow-inner transition-colors"
+      >
         <div className="flex items-center gap-2 min-w-0">
           <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#BA1A1A] text-white shrink-0 animate-pulse">
             <AlertTriangle className="w-3 h-3 text-white" />
@@ -181,8 +205,12 @@ export default function AuthorityHeader({
           </p>
         </div>
         <button
-          onClick={onOpenSitRep}
-          className="flex items-center gap-0.5 text-[11px] font-semibold text-[#B0F1CB] hover:underline shrink-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onOpenSitRep) onOpenSitRep();
+            else if (onSelectTab) onSelectTab("alerts");
+          }}
+          className="flex items-center gap-0.5 text-[11px] font-semibold text-[#B0F1CB] hover:underline shrink-0 bg-white/10 px-2 py-0.5 rounded"
         >
           <span>Protocol 082</span>
           <ChevronRight className="w-3.5 h-3.5" />

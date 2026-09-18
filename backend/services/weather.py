@@ -3,7 +3,7 @@ import requests
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 
-@cached(cache=TTLCache(maxsize=10, ttl=600))
+@cached(cache=TTLCache(maxsize=100, ttl=600))
 def get_weather(latitude: float, longitude: float):
     """
     Fetch current, hourly, and daily weather data from Open-Meteo.
@@ -15,7 +15,7 @@ def get_weather(latitude: float, longitude: float):
         "longitude": longitude,
         "current": "temperature_2m,relative_humidity_2m,precipitation,rain,showers,wind_speed_10m,surface_pressure,visibility",
         "hourly": "precipitation,rain,showers,precipitation_probability,soil_moisture_0_to_7cm",
-        "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code",
+        "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code,precipitation_sum",
         "timezone": "Asia/Kolkata",
     }
 
@@ -36,7 +36,7 @@ def get_weather(latitude: float, longitude: float):
     daily = data.get("daily", {})
 
     # --------------------------------
-    # Hourly data (Next 24h)
+    # Hourly data (Next 24h starting from CURRENT HOUR)
     # --------------------------------
     times = hourly.get("time", [])
     precipitation = hourly.get("precipitation", [])
@@ -45,20 +45,31 @@ def get_weather(latitude: float, longitude: float):
     probability = hourly.get("precipitation_probability", [])
     soil_moisture = hourly.get("soil_moisture_0_to_7cm", [])
 
+    current_time_str = current.get("time", "")
+    start_idx = 0
+    if current_time_str and times:
+        current_hour_prefix = current_time_str[:13]
+        for idx, t in enumerate(times):
+            if t.startswith(current_hour_prefix):
+                start_idx = idx
+                break
+
     next_24_hours = []
-    for i in range(min(24, len(times))):
+    end_idx = min(len(times), start_idx + 24)
+    for i in range(start_idx, end_idx):
         next_24_hours.append({
             "time": times[i],
-            "precipitation": precipitation[i],
-            "rain": rain[i],
-            "showers": showers[i],
-            "precipitation_probability": probability[i],
-            "soil_moisture": soil_moisture[i],
+            "precipitation": precipitation[i] if i < len(precipitation) else 0.0,
+            "rain": rain[i] if i < len(rain) else 0.0,
+            "showers": showers[i] if i < len(showers) else 0.0,
+            "precipitation_probability": probability[i] if i < len(probability) else 0,
+            "soil_moisture": soil_moisture[i] if i < len(soil_moisture) else 0.0,
         })
 
-    rainfall_24h = sum(value or 0 for value in precipitation[:24])
-    max_hourly_rain = max([value or 0 for value in precipitation[:24]], default=0)
-    max_rain_probability = max([value or 0 for value in probability[:24]], default=0)
+    rainfall_24h = sum(value or 0 for value in precipitation[start_idx:start_idx+24])
+    max_hourly_rain = max([value or 0 for value in precipitation[start_idx:start_idx+24]], default=0)
+    max_rain_probability = max([value or 0 for value in probability[start_idx:start_idx+24]], default=0)
+    curr_soil = soil_moisture[start_idx] if start_idx < len(soil_moisture) and soil_moisture[start_idx] is not None else 0.45
 
     # --------------------------------
     # Daily data (Next 7 days)
@@ -72,6 +83,7 @@ def get_weather(latitude: float, longitude: float):
                 "temp_max": daily["temperature_2m_max"][i] if "temperature_2m_max" in daily else 0,
                 "temp_min": daily["temperature_2m_min"][i] if "temperature_2m_min" in daily else 0,
                 "rain_prob": daily["precipitation_probability_max"][i] if "precipitation_probability_max" in daily else 0,
+                "precip_sum": daily["precipitation_sum"][i] if "precipitation_sum" in daily else 0,
             })
 
     return {
@@ -88,6 +100,7 @@ def get_weather(latitude: float, longitude: float):
             "wind_speed": current.get("wind_speed_10m", 0),
             "pressure": current.get("surface_pressure", 1013),
             "visibility": current.get("visibility", 10000), # meters
+            "soil_moisture": curr_soil,
         },
         "forecast": {
             "rainfall_next_24h": round(rainfall_24h, 2),

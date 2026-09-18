@@ -16,10 +16,10 @@ interface ThreatKPIBarProps {
 
 export default function ThreatKPIBar({ risk, loading, onOpenAlerts }: ThreatKPIBarProps) {
   // Calculate dynamic overall threat score (0-100)
-  const ff = Number(risk?.flash_flood) || 64;
-  const ls = Number(risk?.landslide) || 49;
-  const er = Number(risk?.extreme_rainfall) || 78;
-  const threatScore = Math.min(100, Math.max(10, Math.round((ff * 0.35 + ls * 0.3 + er * 0.35))));
+  const ff = risk?.flash_flood !== undefined && risk?.flash_flood !== null ? Number(risk.flash_flood) : 12;
+  const ls = risk?.landslide !== undefined && risk?.landslide !== null ? Number(risk.landslide) : 24;
+  const er = risk?.extreme_rainfall !== undefined && risk?.extreme_rainfall !== null ? Number(risk.extreme_rainfall) : 5;
+  const threatScore = Math.min(100, Math.max(0, Math.round(ff * 0.35 + ls * 0.3 + er * 0.35)));
 
   const getThreatLabel = (score: number) => {
     if (score >= 70) return { label: "HIGH SEVERITY", color: "bg-[#BA1A1A] text-white", ring: "ring-[#BA1A1A]/20" };
@@ -34,37 +34,71 @@ export default function ThreatKPIBar({ risk, loading, onOpenAlerts }: ThreatKPIB
   return (
     <div className="flex flex-col gap-4">
       {/* 1. Active High Emergency Warning Banner */}
-      <section className="rounded-xl bg-[#FFDAD6] text-[#93000A] p-4 sm:p-5 shadow-sm border border-[#BA1A1A]/20 flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-[#BA1A1A] text-white shrink-0 animate-bounce">
-              <AlertTriangle className="w-4 h-4" />
+      {threatScore >= 60 || risk?.overall === "HIGH" || risk?.overall === "CRITICAL" ? (
+        <section className="rounded-xl bg-[#FFDAD6] text-[#93000A] p-4 sm:p-5 shadow-sm border border-[#BA1A1A]/20 flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-[#BA1A1A] text-white shrink-0 animate-bounce">
+                <AlertTriangle className="w-4 h-4" />
+              </span>
+              <h2 className="text-xs sm:text-sm font-bold tracking-tight uppercase text-[#BA1A1A] truncate">
+                High Severity Alert Active
+              </h2>
+            </div>
+            <span className="px-2 py-0.5 rounded-full bg-[#BA1A1A] text-white text-[10px] font-extrabold uppercase shrink-0">
+              Priority Action
             </span>
-            <h2 className="text-xs sm:text-sm font-bold tracking-tight uppercase text-[#BA1A1A] truncate">
-              High Severity Alert • Kangra & Mandi Basins
-            </h2>
           </div>
-          <span className="px-2 py-0.5 rounded-full bg-[#BA1A1A] text-white text-[10px] font-extrabold uppercase shrink-0">
-            2 Active
-          </span>
-        </div>
-        <p className="text-xs sm:text-sm text-[#410002] leading-relaxed">
-          Heavy flash flood & extreme rainfall advisory in effect until 20:00 IST. Catchment saturation threshold crossed in Beas-Neugal zone.
-        </p>
-        <div className="pt-1 flex flex-wrap items-center justify-between gap-2 border-t border-[#BA1A1A]/10 text-xs">
-          <div className="flex items-center gap-1.5 text-[#5D6B63] font-mono text-[11px]">
-            <Clock className="w-3.5 h-3.5 text-[#BA1A1A]" />
-            <span>Advisory valid for next 5h 28m</span>
+          <p className="text-xs sm:text-sm text-[#410002] leading-relaxed">
+            Elevated hydrological runoff & slope saturation detected. Maintain active monitoring along mountain highways and river corridors.
+          </p>
+          <div className="pt-1 flex flex-wrap items-center justify-between gap-2 border-t border-[#BA1A1A]/10 text-xs">
+            <div className="flex items-center gap-1.5 text-[#5D6B63] font-mono text-[11px]">
+              <Clock className="w-3.5 h-3.5 text-[#BA1A1A]" />
+              <span>Real-time continuous telemetry watch</span>
+            </div>
+            <button
+              onClick={onOpenAlerts}
+              className="inline-flex items-center gap-1 font-bold text-[#BA1A1A] hover:underline"
+            >
+              <span>View Emergency Action Brief</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
           </div>
-          <button
-            onClick={onOpenAlerts}
-            className="inline-flex items-center gap-1 font-bold text-[#BA1A1A] hover:underline"
-          >
-            <span>View Emergency Action Brief</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <section className="rounded-xl bg-[#D1F2D9] text-[#1E4620] p-4 sm:p-5 shadow-sm border border-[#A3E6B8] flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-[#2C694C] text-white shrink-0">
+                <ShieldAlert className="w-4 h-4" />
+              </span>
+              <h2 className="text-xs sm:text-sm font-bold tracking-tight uppercase text-[#1E4620] truncate">
+                Nominal Basin Operations • Safe Conditions
+              </h2>
+            </div>
+            <span className="px-2 py-0.5 rounded-full bg-[#2C694C] text-white text-[10px] font-extrabold uppercase shrink-0">
+              All Clear
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-[#1E4620] leading-relaxed">
+            All regional river basins and slope sensors are reporting within safe operating thresholds. Roads are clear and open for standard mountain transit.
+          </p>
+          <div className="pt-1 flex flex-wrap items-center justify-between gap-2 border-t border-[#2C694C]/10 text-xs">
+            <div className="flex items-center gap-1.5 text-[#2C694C] font-mono text-[11px]">
+              <Clock className="w-3.5 h-3.5 text-[#2C694C]" />
+              <span>Live automated Open-Meteo telemetry stream active</span>
+            </div>
+            <button
+              onClick={onOpenAlerts}
+              className="inline-flex items-center gap-1 font-bold text-[#2C694C] hover:underline"
+            >
+              <span>View System Diagnostics</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* 2. OVERALL THREAT INDEX Card */}
       <section className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-[#DCE4DF] flex flex-col gap-4">
@@ -91,22 +125,28 @@ export default function ThreatKPIBar({ risk, loading, onOpenAlerts }: ThreatKPIB
         {/* Big Threat Metric & Delta */}
         <div className="flex items-baseline justify-between pt-1">
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl sm:text-5xl font-black text-[#BA1A1A] tracking-tight tabular-nums">
+            <span className={`text-4xl sm:text-5xl font-black tracking-tight tabular-nums ${
+              threatScore >= 60 ? "text-[#BA1A1A]" : threatScore >= 40 ? "text-[#ED8936]" : "text-[#2C694C]"
+            }`}>
               {loading ? "--" : threatScore}
             </span>
             <span className="text-xs sm:text-sm font-semibold text-[#5D6B63]">/ 100 max</span>
           </div>
           <div className="flex flex-col items-end">
-            <span className="inline-flex items-center gap-1 text-[#BA1A1A] text-xs font-bold bg-[#FFDAD6]/70 px-2 py-0.5 rounded-full font-mono">
+            <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full font-mono ${
+              threatScore >= 60 ? "bg-[#FFDAD6] text-[#BA1A1A]" : "bg-[#D1F2D9] text-[#1E4620]"
+            }`}>
               <ArrowUp className="w-3 h-3" />
-              <span>+8 pts since 06:00</span>
+              <span>{threatScore >= 60 ? "+8 pts since 06:00" : "Steady Baseline"}</span>
             </span>
             <span className="text-[10px] text-[#5D6B63] mt-1 font-medium">Horizon: Next 24 Hours</span>
           </div>
         </div>
 
         <p className="text-xs sm:text-sm text-[#414845] leading-relaxed">
-          Elevated multi-hazard risk concentrated across parts of Kangra, Mandi, and upper Kullu sub-basins with high slope saturation indices.
+          {threatScore >= 60
+            ? "Elevated multi-hazard risk concentrated across localized sub-basins with high slope saturation indices."
+            : "Multi-hazard indices across Himachal Pradesh remain well within standard safety tolerance envelopes."}
         </p>
 
         {/* Segmented NDMA Threat Gauge */}

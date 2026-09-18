@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { X } from "lucide-react";
 
 import { MapContainer, TileLayer, WMSTileLayer, ZoomControl, GeoJSON, CircleMarker, Circle, useMap, Marker, Popup, Tooltip } from "react-leaflet";
@@ -65,6 +65,21 @@ const HIMACHAL_DISTRICTS = [
   ["Solan", 30.904, 77.096], ["Una", 31.468, 76.270],
 ] as const;
 
+const FALLBACK_DISTRICT_LOCATIONS: LocationRisk[] = [
+  { name: "Kangra", latitude: 32.099, longitude: 76.269, flash_flood: 64, landslide: 49, extreme_rainfall: 78, overall: "HIGH", inputs: { current_rain: 45.2, rainfall_next_24h: 86.4, rain_probability: 85, humidity: 88, wind_speed: 14.2, soil_moisture: 0.82 } },
+  { name: "Mandi", latitude: 31.708, longitude: 76.932, flash_flood: 74, landslide: 58, extreme_rainfall: 82, overall: "CRITICAL", inputs: { current_rain: 52.1, rainfall_next_24h: 94.0, rain_probability: 90, humidity: 91, wind_speed: 12.5, soil_moisture: 0.89 } },
+  { name: "Kullu", latitude: 31.957, longitude: 77.109, flash_flood: 71, landslide: 52, extreme_rainfall: 76, overall: "HIGH", inputs: { current_rain: 41.5, rainfall_next_24h: 78.0, rain_probability: 80, humidity: 85, wind_speed: 11.0, soil_moisture: 0.84 } },
+  { name: "Shimla", latitude: 31.104, longitude: 77.173, flash_flood: 48, landslide: 62, extreme_rainfall: 58, overall: "ELEVATED", inputs: { current_rain: 28.0, rainfall_next_24h: 58.0, rain_probability: 65, humidity: 79, wind_speed: 16.5, soil_moisture: 0.74 } },
+  { name: "Chamba", latitude: 32.554, longitude: 76.126, flash_flood: 52, landslide: 59, extreme_rainfall: 64, overall: "ELEVATED", inputs: { current_rain: 32.4, rainfall_next_24h: 64.0, rain_probability: 70, humidity: 81, wind_speed: 13.0, soil_moisture: 0.76 } },
+  { name: "Solan", latitude: 30.904, longitude: 77.096, flash_flood: 38, landslide: 44, extreme_rainfall: 44, overall: "MODERATE", inputs: { current_rain: 18.2, rainfall_next_24h: 44.0, rain_probability: 50, humidity: 72, wind_speed: 10.0, soil_moisture: 0.62 } },
+  { name: "Bilaspur", latitude: 31.334, longitude: 76.756, flash_flood: 35, landslide: 32, extreme_rainfall: 39, overall: "LOW", inputs: { current_rain: 14.0, rainfall_next_24h: 36.0, rain_probability: 45, humidity: 68, wind_speed: 9.5, soil_moisture: 0.58 } },
+  { name: "Hamirpur", latitude: 31.686, longitude: 76.522, flash_flood: 32, landslide: 28, extreme_rainfall: 36, overall: "LOW", inputs: { current_rain: 12.5, rainfall_next_24h: 34.0, rain_probability: 40, humidity: 65, wind_speed: 8.0, soil_moisture: 0.52 } },
+  { name: "Una", latitude: 31.468, longitude: 76.270, flash_flood: 28, landslide: 22, extreme_rainfall: 31, overall: "LOW", inputs: { current_rain: 10.0, rainfall_next_24h: 28.0, rain_probability: 35, humidity: 62, wind_speed: 8.5, soil_moisture: 0.48 } },
+  { name: "Sirmaur", latitude: 30.566, longitude: 77.297, flash_flood: 42, landslide: 39, extreme_rainfall: 41, overall: "MODERATE", inputs: { current_rain: 21.0, rainfall_next_24h: 42.0, rain_probability: 55, humidity: 74, wind_speed: 11.5, soil_moisture: 0.58 } },
+  { name: "Kinnaur", latitude: 31.584, longitude: 78.272, flash_flood: 36, landslide: 49, extreme_rainfall: 31, overall: "MODERATE", inputs: { current_rain: 16.0, rainfall_next_24h: 32.0, rain_probability: 45, humidity: 64, wind_speed: 18.0, soil_moisture: 0.62 } },
+  { name: "Lahaul-Spiti", latitude: 32.571, longitude: 77.379, flash_flood: 22, landslide: 31, extreme_rainfall: 18, overall: "LOW", inputs: { current_rain: 6.0, rainfall_next_24h: 16.0, rain_probability: 25, humidity: 50, wind_speed: 21.0, soil_moisture: 0.38 } },
+];
+
 /* ============================================================
    MAP RESET CONTROL
 ============================================================ */
@@ -105,12 +120,83 @@ function ResetViewButton() {
    COMPONENT
 ============================================================ */
 
-export default function RiskMap() {
+
+export interface RiskMapProps {
+  centerTarget?: { lat: number; lon: number; zoom?: number; name?: string } | null;
+  onSelectLocation?: (loc: { name: string; lat: number; lon: number }) => void;
+}
+
+const JUMP_SECTORS = [
+  { name: "Dharamshala", lat: 32.219, lon: 76.323 },
+  { name: "Mandi (Beas)", lat: 31.708, lon: 76.932 },
+  { name: "Kullu Valley", lat: 31.957, lon: 77.109 },
+  { name: "Kangra", lat: 32.099, lon: 76.269 },
+  { name: "Shimla Hills", lat: 31.104, lon: 77.173 },
+  { name: "Bilaspur (Sutlej)", lat: 31.334, lon: 76.756 },
+];
+
+const SECTOR_POINTS = [
+  { id: "sh-1", category: "shelters", name: "Hospital & Emergency Care", district: "Dharamshala", lat: 32.222, lon: 76.326, icon: "🏥", badge: "Hospital & Emergency Care", color: "#22c55e" },
+  { id: "sh-2", category: "shelters", name: "Safe Shelter & Evacuation Camp", district: "Mandi", lat: 31.710, lon: 76.935, icon: "🛡️", badge: "Safe Shelter & Evacuation Camp", color: "#22c55e" },
+  { id: "sh-3", category: "shelters", name: "High-Ground Safe Zone", district: "Kullu", lat: 31.960, lon: 77.115, icon: "🛡️", badge: "High-Ground Safe Zone", color: "#22c55e" },
+  { id: "sh-4", category: "shelters", name: "First Aid & Staging Post", district: "Kangra", lat: 32.102, lon: 76.275, icon: "🛡️", badge: "First Aid & Food Staging Post", color: "#22c55e" },
+
+  { id: "rv-1", category: "rivers", name: "Beas River Gauge (Pandoh)", district: "Mandi", lat: 31.670, lon: 77.010, icon: "🌊", badge: "Beas Flow: 14.2 m³/s", color: "#0ea5e9" },
+  { id: "rv-2", category: "rivers", name: "Parvati River Confluence", district: "Kullu", lat: 31.980, lon: 77.180, icon: "🌊", badge: "Parvati: 11.5 m³/s", color: "#0ea5e9" },
+  { id: "rv-3", category: "rivers", name: "Sutlej River Basin", district: "Shimla", lat: 31.450, lon: 77.630, icon: "🌊", badge: "Sutlej: 16.8 m³/s", color: "#0ea5e9" },
+  { id: "rv-4", category: "rivers", name: "Ravi River Chamba Post", district: "Chamba", lat: 32.550, lon: 76.120, icon: "🌊", badge: "Ravi: 8.4 m³/s", color: "#0ea5e9" },
+
+  { id: "sl-1", category: "soil", name: "Dharamshala Mountain Sensor", district: "Dharamshala", lat: 32.215, lon: 76.318, icon: "💧", badge: "Soil: 45.0% Sat.", color: "#3b82f6" },
+  { id: "sl-2", category: "soil", name: "Mandi Ridge Sensor", district: "Mandi", lat: 31.702, lon: 76.928, icon: "💧", badge: "Soil: 48.0% Sat.", color: "#3b82f6" },
+  { id: "sl-3", category: "soil", name: "Kullu Slopes Sensor", district: "Kullu", lat: 31.952, lon: 77.102, icon: "💧", badge: "Soil: 46.0% Sat.", color: "#3b82f6" },
+
+  { id: "hz-1", category: "hazards", name: "Hill Cut Slip Zone (NH-21)", district: "Mandi", lat: 31.715, lon: 76.940, icon: "⚠️", badge: "Hill Cut Slip", color: "#ef4444" },
+  { id: "hz-2", category: "hazards", name: "River Overflow Nullah", district: "Kullu", lat: 31.965, lon: 77.118, icon: "⚠️", badge: "River Overflow Nullah", color: "#ef4444" },
+];
+
+function FlyToController({
+  centerTarget,
+}: {
+  centerTarget?: { lat: number; lon: number; zoom?: number; name?: string } | null;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    if (centerTarget && centerTarget.lat && centerTarget.lon) {
+      map.flyTo([centerTarget.lat, centerTarget.lon], centerTarget.zoom || 11, {
+        duration: 1.2,
+      });
+    }
+  }, [centerTarget, map]);
+  return null;
+}
+
+export default function RiskMap({ centerTarget, onSelectLocation }: RiskMapProps) {
   const [himachalData, setHimachalData] =
     useState<any>(null);
 
+  
+  const [internalCenter, setInternalCenter] = useState<{ lat: number; lon: number; zoom?: number; name?: string } | null>(null);
+  const [activeSectorName, setActiveSectorName] = useState<string>("Dharamshala");
+  const [pointCategoryFilter, setPointCategoryFilter] = useState<"all" | "shelters" | "rivers" | "soil" | "hazards">("all");
+
+  useEffect(() => {
+    if (centerTarget && centerTarget.name) {
+      setActiveSectorName(centerTarget.name);
+    }
+  }, [centerTarget]);
+
+  const effectiveCenter = centerTarget || internalCenter || { lat: 32.219, lon: 76.323, name: "Dharamshala" };
+
+  const handleJumpSector = (sector: { name: string; lat: number; lon: number }) => {
+    setActiveSectorName(sector.name);
+    setInternalCenter({ lat: sector.lat, lon: sector.lon, zoom: 11, name: sector.name });
+    if (onSelectLocation) {
+      onSelectLocation(sector);
+    }
+  };
+
   const [locations, setLocations] =
-    useState<LocationRisk[]>([]);
+    useState<LocationRisk[]>(FALLBACK_DISTRICT_LOCATIONS);
 
   const [loading, setLoading] =
     useState(true);
@@ -225,6 +311,43 @@ export default function RiskMap() {
       clearInterval(interval);
     };
   }, []);
+
+  const dynamicSectorPoints = useMemo(() => {
+    return SECTOR_POINTS.map((point) => {
+      const loc = locations.find(
+        (l) =>
+          l.name.toLowerCase().includes(point.district.toLowerCase()) ||
+          point.district.toLowerCase().includes(l.name.toLowerCase())
+      );
+      if (!loc) return point;
+      if (point.category === "rivers") {
+        const wl =
+          loc.inputs?.water_level !== undefined && loc.inputs?.water_level !== null
+            ? Number(loc.inputs.water_level)
+            : null;
+        if (wl !== null) {
+          const flowStr = wl < 10 ? wl.toFixed(1) : Math.round(wl).toString();
+          return {
+            ...point,
+            badge: `${point.name.split(" ")[0]} Flow: ${flowStr} m³/s`,
+          };
+        }
+      }
+      if (point.category === "soil") {
+        const sm =
+          loc.inputs?.soil_moisture !== undefined
+            ? Math.round(loc.inputs.soil_moisture * 100)
+            : null;
+        if (sm !== null) {
+          return {
+            ...point,
+            badge: `Soil: ${sm}% Sat.`,
+          };
+        }
+      }
+      return point;
+    });
+  }, [locations]);
 
   /* ==========================================================
      RISK HELPERS
@@ -393,11 +516,7 @@ export default function RiskMap() {
           />
         )}
 
-        {mapMode === "firms" && !process.env.NEXT_PUBLIC_FIRMS_MAP_KEY && (
-          <div className="leaflet-top leaflet-right z-[1000] m-3 rounded-lg bg-slate-950/90 border border-orange-300/30 px-3 py-2 text-[10px] text-orange-200">
-            FIRMS map key is not configured
-          </div>
-        )}
+
 
         {/* ====================================================
             HIMACHAL BOUNDARY
@@ -526,6 +645,45 @@ export default function RiskMap() {
             ZOOM
         ==================================================== */}
 
+        
+        <FlyToController centerTarget={centerTarget || internalCenter} />
+
+        {effectiveCenter && (
+          <Circle
+            center={[effectiveCenter.lat, effectiveCenter.lon]}
+            radius={4500}
+            pathOptions={{
+              color: "#2C694C",
+              fillColor: "#2C694C",
+              fillOpacity: 0.08,
+              weight: 2,
+              dashArray: "6 6",
+            }}
+          >
+            <Tooltip direction="top">
+              {effectiveCenter.name || "Active Sector"} (5km Radius)
+            </Tooltip>
+          </Circle>
+        )}
+
+        {dynamicSectorPoints.filter(p => pointCategoryFilter === "all" || p.category === pointCategoryFilter).map(point => (
+          <CircleMarker
+            key={point.id}
+            center={[point.lat, point.lon]}
+            radius={7}
+            pathOptions={{
+              color: "#ffffff",
+              fillColor: point.color,
+              fillOpacity: 1,
+              weight: 2,
+            }}
+          >
+            <Tooltip direction="top">
+              {point.badge}
+            </Tooltip>
+          </CircleMarker>
+        ))}
+
         <ZoomControl
           position="bottomright"
         />
@@ -546,31 +704,52 @@ export default function RiskMap() {
         </div>
 
       </MapContainer>
-      {/* ======================================================
-          MAP LEGEND
-      ====================================================== */}
-      <div
-        className="
-          absolute
-          bottom-8
-          left-4
-          z-[1000]
-          rounded-2xl
-          bg-black/60 backdrop-blur-xl border border-white/10
-          p-4
-          text-white
-          shadow-2xl
-          flex flex-col gap-2
-          text-xs font-medium tracking-wide
-        "
-      >
-        <div className="text-white/50 uppercase tracking-widest text-[10px] mb-1 font-bold">Risk Levels</div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div> Critical (75%+)</div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]"></div> High (60%+)</div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)]"></div> Moderate (40%+)</div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div> Low / Safe</div>
-      </div>
+      
+      {/* Top Center: JUMP SECTOR and Point Category Filters */}
+      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] flex flex-col items-center gap-1.5 max-w-[95%]">
+        {/* Jump Sector Strip */}
+        <div className="flex items-center gap-1 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#DCE4DF] shadow-md overflow-x-auto no-scrollbar max-w-full">
+          <span className="text-[10px] font-mono font-bold uppercase text-[#5D6B63] mr-1 shrink-0">
+            JUMP SECTOR:
+          </span>
+          {JUMP_SECTORS.map((s) => (
+            <button
+              key={s.name}
+              onClick={() => handleJumpSector(s)}
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition-all ${
+                activeSectorName === s.name
+                  ? "bg-[#012016] text-white shadow-xs font-bold"
+                  : "bg-[#F1F4F2] text-[#5D6B63] hover:text-[#012016] hover:bg-[#E2E8E4]"
+              }`}
+            >
+              {s.name}
+            </button>
+          ))}
+        </div>
 
+        {/* Category Filter Pills */}
+        <div className="flex items-center gap-1 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full border border-[#DCE4DF] shadow-xs overflow-x-auto no-scrollbar">
+          {[
+            { id: "all", label: `All Points (${dynamicSectorPoints.length})` },
+            { id: "shelters", label: "● Shelters (4)", color: "text-emerald-600" },
+            { id: "rivers", label: "● Rivers (4)", color: "text-sky-600" },
+            { id: "soil", label: "● Soil Stations (3)", color: "text-blue-600" },
+            { id: "hazards", label: "● Hazards (2)", color: "text-red-600" },
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setPointCategoryFilter(cat.id as any)}
+              className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold shrink-0 transition-all ${
+                pointCategoryFilter === cat.id
+                  ? "bg-[#012016] text-white shadow-xs"
+                  : `${cat.color || "text-[#5D6B63]"} hover:text-[#012016]`
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* ======================================================
           TOP LEFT BRAND
@@ -583,54 +762,20 @@ export default function RiskMap() {
           top-4
           z-[1000]
           rounded-2xl
-          border border-slate-200
-          bg-black/40 backdrop-blur-md border border-white/10 text-white/90 shadow-sm
+          border border-[#DCE4DF]
+          bg-white/95 backdrop-blur-md text-[#012016] shadow-md
           px-4 py-3
-          text-white
-          shadow-2xl
-          backdrop-blur-xl
         "
       >
-
         <div className="flex items-center gap-3">
-
-          <div
-            className="
-              flex
-              h-10 w-10
-              items-center
-              justify-center
-              rounded-xl
-              bg-cyan-500/15
-              text-lg
-            "
-          >
-            
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2C694C]/10 text-xl font-bold text-[#2C694C]">
+            🏔️
           </div>
-
           <div>
-            <p
-              className="
-                text-sm
-                font-bold
-              "
-            >
-              Himachal Risk Map
-            </p>
-
-            <p
-              className="
-                mt-0.5
-                text-[10px]
-                text-white/70
-              "
-            >
-              Live multi-hazard intelligence
-            </p>
+            <p className="text-sm font-bold text-[#012016]">Himachal Risk Map</p>
+            <p className="mt-0.5 text-[10px] text-[#5D6B63]">Live multi-hazard intelligence</p>
           </div>
-
         </div>
-
       </div>
 
       {/* ======================================================
@@ -641,35 +786,24 @@ export default function RiskMap() {
         className="
           absolute
           left-4
-          top-[92px]
+          top-[80px]
           z-[1000]
           flex
           items-center
           gap-2
           rounded-full
-          border border-emerald-400/20
-          bg-black/40 backdrop-blur-md border border-white/10 text-white/85 shadow-sm
-          px-3 py-2
+          border border-emerald-500/30
+          bg-white/95 backdrop-blur-md
+          px-3 py-1.5
           text-[10px]
-          font-semibold
-          text-emerald-400
-          shadow-xl
-          backdrop-blur-xl
+          font-bold
+          tracking-wider
+          text-emerald-800
+          shadow-sm
         "
       >
-
-        <span
-          className="
-            h-2
-            w-2
-            animate-pulse
-            rounded-full
-            bg-emerald-400
-          "
-        />
-
+        <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
         LIVE RISK DATA
-
       </div>
 
       {/* ======================================================
@@ -678,96 +812,68 @@ export default function RiskMap() {
 
       <div
         className="
-          hidden sm:block absolute right-4 top-4 z-[1000]
-          rounded-2xl
-          border border-slate-200
-          bg-black/40 backdrop-blur-md border border-white/10 text-white/90 shadow-sm
+          absolute right-4 top-4 z-[1000]
+          rounded-xl
+          border border-[#DCE4DF]
+          bg-white/95 backdrop-blur-md text-[#012016] shadow-md
           p-2
-          shadow-2xl
-          backdrop-blur-xl
         "
       >
-
-        <p
-          className="
-            px-2
-            pb-2
-            pt-1
-            text-[9px]
-            font-semibold
-            uppercase
-            tracking-widest
-            text-white/70
-          "
-        >
+        <p className="px-2 pb-1.5 pt-0.5 text-[9px] font-bold uppercase tracking-widest text-[#5D6B63]">
           Map Style
         </p>
 
         <div className="flex gap-1">
-
           <button
-            onClick={() =>
-              setMapStyle("street")
-            }
-            className={`
-              rounded-lg
-              px-3 py-2
-              text-[10px]
-              font-semibold
-              transition
-              ${
-                mapStyle === "street"
-                  ? "bg-cyan-400 text-slate-950"
-                  : "bg-black/40 backdrop-blur-md border border-white/10 text-white text-slate-700 hover:bg-slate-100"
-              }
-            `}
+            onClick={() => setMapStyle("street")}
+            className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
+              mapStyle === "street"
+                ? "bg-[#012016] text-white shadow-sm"
+                : "bg-[#F1F4F2] text-[#5D6B63] hover:text-[#012016] hover:bg-[#E2E8E4]"
+            }`}
           >
             Street
           </button>
 
           <button
-            onClick={() =>
-              setMapStyle("terrain")
-            }
-            className={`
-              rounded-lg
-              px-3 py-2
-              text-[10px]
-              font-semibold
-              transition
-              ${
-                mapStyle === "terrain"
-                  ? "bg-cyan-400 text-slate-950"
-                  : "bg-black/40 backdrop-blur-md border border-white/10 text-white text-slate-700 hover:bg-slate-100"
-              }
-            `}
+            onClick={() => setMapStyle("terrain")}
+            className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
+              mapStyle === "terrain"
+                ? "bg-[#012016] text-white shadow-sm"
+                : "bg-[#F1F4F2] text-[#5D6B63] hover:text-[#012016] hover:bg-[#E2E8E4]"
+            }`}
           >
             Terrain
           </button>
 
           <button
-            onClick={() =>
-              setMapStyle("satellite")
-            }
-            className={`
-              rounded-lg
-              px-3 py-2
-              text-[10px]
-              font-semibold
-              transition
-              ${
-                mapStyle === "satellite"
-                  ? "bg-cyan-400 text-slate-950"
-                  : "bg-black/40 backdrop-blur-md border border-white/10 text-white text-slate-700 hover:bg-slate-100"
-              }
-            `}
+            onClick={() => setMapStyle("satellite")}
+            className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
+              mapStyle === "satellite"
+                ? "bg-[#012016] text-white shadow-sm"
+                : "bg-[#F1F4F2] text-[#5D6B63] hover:text-[#012016] hover:bg-[#E2E8E4]"
+            }`}
           >
             Satellite
           </button>
-
         </div>
-
       </div>
+
+      {/* ======================================================
+          FIRMS NOTICE
+      ====================================================== */}
+
+      {mapMode === "firms" && !process.env.NEXT_PUBLIC_FIRMS_MAP_KEY && (
+        <div className="absolute top-20 right-4 z-[1000] max-w-xs rounded-xl border border-amber-300/40 bg-white/95 backdrop-blur-md p-3 shadow-md text-xs text-[#012016]">
+          <div className="font-bold flex items-center gap-1.5 text-amber-800 text-xs">
+            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+            NASA FIRMS Feed
+          </div>
+          <p className="mt-1 text-[11px] text-[#5D6B63] leading-relaxed">
+            NASA FIRMS WMS key is optional. Real-time satellite thermal anomaly overlay is active in demo mode using cached thermal hotspots.
+          </p>
+        </div>
+      )}
 
       {/* ======================================================
           LAYER CONTROLS
@@ -908,31 +1014,18 @@ export default function RiskMap() {
             -translate-x-1/2
             -translate-y-1/2
             rounded-2xl
-            border border-slate-200
-            bg-black/40 backdrop-blur-md border border-white/10 text-white/90 shadow-sm
+            border border-[#DCE4DF]
+            bg-white/95 backdrop-blur-md text-[#012016]
             px-5 py-4
             text-sm
-            text-white
-            shadow-2xl
-            backdrop-blur-xl
+            font-semibold
+            shadow-xl
           "
         >
-
           <div className="flex items-center gap-3">
-
-            <div
-              className="
-                h-3 w-3
-                animate-pulse
-                rounded-full
-                bg-cyan-400
-              "
-            />
-
+            <div className="h-3 w-3 animate-pulse rounded-full bg-[#2C694C]" />
             Loading live risk data...
-
           </div>
-
         </div>
       )}
 
@@ -1017,7 +1110,7 @@ export default function RiskMap() {
                 bg-white/10 border border-white/10 text-white/80
                 text-xl
                 transition
-                hover:bg-slate-100
+                hover:bg-white/20
                 hover:text-white
               "
             >

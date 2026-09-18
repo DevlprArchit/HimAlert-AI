@@ -22,9 +22,10 @@ import {
 interface EmergencyAlertCenterProps {
   onClose?: () => void;
   onOpenSitRep?: () => void;
+  onOpenTwilio?: () => void;
 }
 
-export default function EmergencyAlertCenter({ onClose, onOpenSitRep }: EmergencyAlertCenterProps) {
+export default function EmergencyAlertCenter({ onClose, onOpenSitRep, onOpenTwilio }: EmergencyAlertCenterProps) {
   const [activeFilter, setActiveFilter] = useState<"all" | "high" | "elevated" | "resolved">("all");
   const [acknowledged, setAcknowledged] = useState<{ [key: string]: boolean }>({});
   const [checklist, setChecklist] = useState<{ [key: string]: boolean }>({
@@ -274,10 +275,13 @@ export default function EmergencyAlertCenter({ onClose, onOpenSitRep }: Emergenc
                   </button>
                 )}
                 <button
-                  onClick={() => showToast("SMS Broadcast initiated to 12,400 registered handsets in Kangra valley.")}
-                  className="w-full sm:w-auto h-10 px-3 rounded-lg bg-[#F7FAF8] text-[#012016] text-xs font-semibold border border-[#DCE4DF] hover:bg-[#EBF0ED] flex items-center justify-center gap-1.5"
+                  onClick={() => {
+                    showToast("SMS Broadcast gateway opened. Ready to dispatch to 12,400 registered handsets.");
+                    if (onOpenTwilio) onOpenTwilio();
+                  }}
+                  className="w-full sm:w-auto h-10 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5"
                 >
-                  <Send className="w-3.5 h-3.5 text-[#2C694C]" />
+                  <Send className="w-3.5 h-3.5 text-white" />
                   <span>Relay Emergency SMS Broadcast</span>
                 </button>
               </div>
@@ -327,7 +331,7 @@ export default function EmergencyAlertCenter({ onClose, onOpenSitRep }: Emergenc
                 <span className="px-2 py-0.5 rounded bg-[#FFDAD6] text-[#93000A] font-bold text-[10px]">Critical Rise</span>
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
+              <div className="flex flex-wrap items-center gap-2 pt-1">
                 <button
                   onClick={() => handleAcknowledge("mandi", "Mandi District")}
                   disabled={acknowledged["mandi"]}
@@ -344,6 +348,16 @@ export default function EmergencyAlertCenter({ onClose, onOpenSitRep }: Emergenc
                     Hydrograph Telemetry
                   </button>
                 )}
+                <button
+                  onClick={() => {
+                    showToast("SMS Broadcast gateway opened for Mandi basin.");
+                    if (onOpenTwilio) onOpenTwilio();
+                  }}
+                  className="w-full sm:w-auto h-10 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Send className="w-3.5 h-3.5 text-white" />
+                  <span>Twilio SMS</span>
+                </button>
               </div>
             </div>
           </article>

@@ -28,9 +28,9 @@ export default function OperationalSignals() {
   }, []);
 
   const fallbackRivers = rivers.length > 0 ? rivers : [
-    { basin: "Mandi (Beas)", discharge: 358.7, unit: "m³/s", status: "ELEVATED", trend: "RISING" },
-    { basin: "Kangra (Ravi)", discharge: 142.3, unit: "m³/s", status: "MODERATE", trend: "STABLE" },
-    { basin: "Kullu (Parvati)", discharge: 218.9, unit: "m³/s", status: "HIGH", trend: "RISING" },
+    { basin: "Mandi (Beas)", discharge: 12.4, unit: "m³/s", status: "AVAILABLE", trend: "STABLE" },
+    { basin: "Kangra (Ravi)", discharge: 8.2, unit: "m³/s", status: "AVAILABLE", trend: "STABLE" },
+    { basin: "Kullu (Parvati)", discharge: 15.6, unit: "m³/s", status: "AVAILABLE", trend: "STABLE" },
   ];
 
   return (
@@ -67,7 +67,7 @@ export default function OperationalSignals() {
               <div key={r.basin} className="rounded-lg bg-white border border-[#DCE4DF] p-2.5 flex flex-col justify-between">
                 <span className="text-[10px] font-bold text-[#5D6B63] truncate">{r.basin}</span>
                 <span className="text-base font-black text-[#012016] mt-1">
-                  {r.discharge == null ? "358.7" : Math.round(r.discharge)}{" "}
+                  {r.discharge == null ? "0.0" : r.discharge < 10 ? r.discharge.toFixed(1) : Math.round(r.discharge)}{" "}
                   <span className="text-[9px] font-normal text-[#5D6B63]">{r.unit}</span>
                 </span>
                 <span className={`text-[9px] font-mono font-bold uppercase mt-1 ${r.trend === "RISING" ? "text-[#BA1A1A]" : "text-[#2C694C]"}`}>

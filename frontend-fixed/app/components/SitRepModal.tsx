@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, Printer, Download, CheckCircle, ShieldAlert } from "lucide-react";
+import { X, Printer, Download, CheckCircle, ShieldAlert, Navigation } from "lucide-react";
 
 interface SitRepModalProps {
   isOpen: boolean;
@@ -12,35 +12,47 @@ export default function SitRepModal({ isOpen, onClose }: SitRepModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white border border-[#DCE4DF] w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
-        <div className="bg-slate-950 px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-rose-500" />
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              State Emergency Operations Center (SEOC) • Situation Report #24-HP
-            </h3>
+        <div className="bg-[#F7FAF8] px-6 py-5 border-b border-[#DCE4DF] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <ShieldAlert className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-[#012016] uppercase tracking-wider">
+                Situation Report (SitRep)
+              </h3>
+              <p className="text-[10px] font-mono text-[#5D6B63] uppercase font-bold tracking-wider mt-0.5">
+                State Emergency Operations Center • #24-HP
+              </p>
+            </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white">
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200 text-[#5D6B63] transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Printable Report Body */}
-        <div className="p-6 overflow-y-auto space-y-4 text-xs text-slate-300 font-sans leading-relaxed">
-          <div className="border-b border-slate-800 pb-3 flex justify-between text-slate-400">
+        <div className="p-6 sm:p-8 overflow-y-auto space-y-6 text-sm text-[#181C1B] font-sans leading-relaxed bg-white">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[#F7FAF8] rounded-xl border border-[#DCE4DF] gap-4">
             <div>
-              <strong>Issued by:</strong> HimAlert Multi-Hazard Early Warning AI
+              <span className="block text-[10px] font-bold text-[#5D6B63] uppercase tracking-wider mb-1">Issued By</span>
+              <strong className="text-[#012016]">HimAlert Early Warning AI</strong>
             </div>
-            <div>
-              <strong>Date/Time:</strong> {new Date().toLocaleString("en-IN")}
+            <div className="sm:text-right">
+              <span className="block text-[10px] font-bold text-[#5D6B63] uppercase tracking-wider mb-1">Date/Time</span>
+              <strong className="text-[#012016] font-mono">{new Date().toLocaleString("en-IN")}</strong>
             </div>
           </div>
 
           <div>
-            <h4 className="font-bold text-cyan-400 uppercase tracking-wider mb-1">1. Executive Threat Summary</h4>
-            <p>
+            <h4 className="font-bold text-[#2C694C] uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-[#2C694C]/10 flex items-center justify-center text-[10px] border border-[#2C694C]/20">1</span>
+              Executive Threat Summary
+            </h4>
+            <p className="p-4 bg-slate-50 rounded-xl text-[#5D6B63]">
               Monsoon trough intensification observed across Central and Northern Himachal Pradesh.
               High soil moisture saturation (&gt;80%) in Mandi, Kullu, and Kangra elevates the probability
               of triggered debris flows and slope failures in the next 12–24 hours.
@@ -48,47 +60,73 @@ export default function SitRepModal({ isOpen, onClose }: SitRepModalProps) {
           </div>
 
           <div>
-            <h4 className="font-bold text-rose-400 uppercase tracking-wider mb-1">2. Critical River & Dam Status</h4>
-            <ul className="list-disc pl-5 space-y-1">
-              <li><strong>Sutlej River (Rampur/Bilaspur):</strong> Flow rate at 84% capacity. Pandoh Dam discharge on standby.</li>
-              <li><strong>Beas River (Mandi/Pandoh):</strong> Flow at 72% capacity. Moderate inundation risk for downstream settlements.</li>
-              <li><strong>Ravi & Chenab:</strong> Normal flow, within safety envelope.</li>
+            <h4 className="font-bold text-red-600 uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-[10px] border border-red-200">2</span>
+              Critical River & Dam Status
+            </h4>
+            <ul className="space-y-2 p-4 border border-red-100 bg-red-50/50 rounded-xl">
+              <li className="flex gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span><strong>Sutlej River (Rampur/Bilaspur):</strong> Flow rate at 84% capacity. Pandoh Dam discharge on standby.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-red-500 mt-1">•</span>
+                <span><strong>Beas River (Mandi/Pandoh):</strong> Flow at 72% capacity. Moderate inundation risk for downstream settlements.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-green-500 mt-1">•</span>
+                <span><strong>Ravi & Chenab:</strong> Normal flow, within safety envelope.</span>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-amber-400 uppercase tracking-wider mb-1">3. Road & Infrastructure Impact</h4>
-            <ul className="list-disc pl-5 space-y-1">
-              <li><strong>NH-21 (Chandigarh-Manali):</strong> Heavy debris reported near 7-Mile Mandi. Traffic suspended.</li>
-              <li><strong>NH-5 (Hindustan-Tibet Road):</strong> One-way traffic permitted near Jeori due to shooting stones.</li>
+            <h4 className="font-bold text-amber-600 uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-[10px] border border-amber-200">3</span>
+              Road & Infrastructure Impact
+            </h4>
+            <ul className="space-y-2 p-4 border border-amber-100 bg-amber-50/50 rounded-xl">
+              <li className="flex gap-2">
+                <span className="text-amber-500 mt-1">•</span>
+                <span><strong>NH-21 (Chandigarh-Manali):</strong> Heavy debris reported near 7-Mile Mandi. Traffic suspended.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-amber-500 mt-1">•</span>
+                <span><strong>NH-5 (Hindustan-Tibet Road):</strong> One-way traffic permitted near Jeori due to shooting stones.</span>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-emerald-400 uppercase tracking-wider mb-1">4. Recommended Command Directives</h4>
-            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
-              <p>✔️ Deploy 2 NDRF teams to Pandoh & Larji choke points.</p>
-              <p>✔️ Issue immediate evacuation broadcasts via CAP/Cell Broadcast to low-lying zones.</p>
-              <p>✔️ Position earthmovers at vulnerable landslide corridors on NH-3, NH-5, and NH-21.</p>
+            <h4 className="font-bold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] border border-blue-200">4</span>
+              Recommended Command Directives
+            </h4>
+            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-2 text-[#012016] font-medium">
+              <p className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" /> Deploy 2 NDRF teams to Pandoh & Larji choke points.</p>
+              <p className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" /> Issue immediate evacuation broadcasts via CAP/Cell Broadcast to low-lying zones.</p>
+              <p className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" /> Position earthmovers at vulnerable landslide corridors on NH-3, NH-5, and NH-21.</p>
             </div>
           </div>
         </div>
 
         {/* Modal Footer Actions */}
-        <div className="bg-slate-950 px-6 py-3 border-t border-slate-800 flex items-center justify-between">
-          <span className="text-[11px] text-slate-500 font-mono">Confidential • For Official Disaster Response Use</span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => window.print()}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs rounded-md shadow"
-            >
-              <Printer className="w-3.5 h-3.5" /> Print / Save PDF
-            </button>
+        <div className="bg-[#F7FAF8] px-6 py-4 border-t border-[#DCE4DF] flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
+          <span className="text-[10px] text-[#5D6B63] font-mono font-bold uppercase tracking-wider text-center sm:text-left">
+            Confidential • For Official Use
+          </span>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={onClose}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-md"
+              className="flex-1 sm:flex-none px-4 py-2 bg-white border border-[#DCE4DF] hover:bg-slate-50 text-[#012016] font-bold text-xs rounded-xl transition-colors"
             >
               Close
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition-colors"
+            >
+              <Printer className="w-3.5 h-3.5" /> Print PDF
             </button>
           </div>
         </div>

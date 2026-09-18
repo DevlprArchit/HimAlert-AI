@@ -9,7 +9,7 @@ from typing import Dict, Any, List, Optional
 CSV_DIR = Path(r"C:\Users\archi\Downloads\Csv")
 
 class HimachalDisasterKnowledgeBase:
-    """
+    r"""
     Indexes and queries historical flood training data, NASA MODIS flood archives,
     and decadal hourly weather datasets from C:\Users\archi\Downloads\Csv.
     """

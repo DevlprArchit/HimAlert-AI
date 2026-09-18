@@ -1,4 +1,4 @@
-﻿def clamp(value, minimum=0, maximum=100):
+def clamp(value, minimum=0, maximum=100):
     return max(minimum, min(maximum, value))
 
 
@@ -44,7 +44,10 @@ def calculate_risk(
         current.get("wind_speed", 0) or 0
     )
 
-    rainfall_24h = sum(forecast.get("precipitation", [])[:24]) if "precipitation" in forecast else 0.0
+    rainfall_24h = float(
+        forecast.get("rainfall_next_24h", 0.0)
+        or (sum(forecast.get("precipitation", [])[:24]) if "precipitation" in forecast else 0.0)
+    )
 
     rain_probability = float(
         forecast.get("max_rain_probability", 0) or 0
@@ -112,38 +115,33 @@ def calculate_risk(
     # SOIL MOISTURE
     # ========================================================
 
-    soil_moisture = 0
+    soil_moisture = float(current.get("soil_moisture") or 0.0)
 
-    hours = forecast.get(
-        "hours",
-        []
-    )
+    if not soil_moisture:
+        hours = forecast.get(
+            "hours",
+            []
+        )
 
-    if hours:
+        if hours:
+            soil_values = [
+                float(
+                    h.get(
+                        "soil_moisture",
+                        0
+                    ) or 0
+                )
+                for h in hours
+                if h.get(
+                    "soil_moisture"
+                ) is not None
+            ]
 
-        soil_values = [
-
-            float(
-                h.get(
-                    "soil_moisture",
-                    0
-                ) or 0
-            )
-
-            for h in hours
-
-            if h.get(
-                "soil_moisture"
-            ) is not None
-
-        ]
-
-        if soil_values:
-
-            soil_moisture = (
-                sum(soil_values)
-                / len(soil_values)
-            )
+            if soil_values:
+                soil_moisture = (
+                    sum(soil_values)
+                    / len(soil_values)
+                )
 
     # ========================================================
     # WATER LEVEL

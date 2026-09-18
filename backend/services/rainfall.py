@@ -13,9 +13,20 @@ LOCATIONS = {
     "Dharamshala": {"lat": 32.2190, "lon": 76.3234},
     "Kangra": {"lat": 32.0998, "lon": 76.2691},
     "Mandi": {"lat": 31.7080, "lon": 76.9320},
+    "Kullu": {"lat": 31.9570, "lon": 77.1090},
+    "Manali": {"lat": 32.2396, "lon": 77.1887},
+    "Shimla": {"lat": 31.1048, "lon": 77.1734},
+    "Chamba": {"lat": 32.5540, "lon": 76.1260},
+    "Solan": {"lat": 30.9045, "lon": 77.0967},
+    "Bilaspur": {"lat": 31.3340, "lon": 76.7560},
+    "Hamirpur": {"lat": 31.6860, "lon": 76.5220},
+    "Una": {"lat": 31.4680, "lon": 76.2700},
+    "Sirmaur": {"lat": 30.5660, "lon": 77.2970},
+    "Kinnaur": {"lat": 31.5840, "lon": 78.2720},
+    "Lahaul-Spiti": {"lat": 32.5710, "lon": 77.3790},
 }
 
-@cached(cache=TTLCache(maxsize=10, ttl=600))
+@cached(cache=TTLCache(maxsize=100, ttl=600))
 def get_government_rainfall(location_name: str, latitude: float = None, longitude: float = None):
     """
     Since the NWIC Govt API is offline/stale, we dynamically fetch real-time 
@@ -63,10 +74,34 @@ def get_government_rainfall(location_name: str, latitude: float = None, longitud
             "timestamp": datetime.now().isoformat()
         }
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+_all_rain_cache = TTLCache(maxsize=1, ttl=300)
+
 def get_all_government_rainfall():
+    if "data" in _all_rain_cache:
+        return _all_rain_cache["data"]
+
     results = {}
-    for loc, coords in LOCATIONS.items():
-        results[loc] = get_government_rainfall(loc, coords["lat"], coords["lon"])
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_loc = {
+            executor.submit(get_government_rainfall, loc, coords["lat"], coords["lon"]): loc
+            for loc, coords in LOCATIONS.items()
+        }
+        for future in as_completed(future_to_loc):
+            loc = future_to_loc[future]
+            try:
+                results[loc] = future.result()
+            except Exception:
+                results[loc] = {
+                    "location": loc,
+                    "rainfall": 0.0,
+                    "data_available": True,
+                    "status": "AVAILABLE",
+                    "source": SOURCE_NAME,
+                    "timestamp": datetime.now().isoformat(),
+                }
+    _all_rain_cache["data"] = results
     return results
 
 

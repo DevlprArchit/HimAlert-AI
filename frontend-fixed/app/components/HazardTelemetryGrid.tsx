@@ -55,16 +55,16 @@ export default function HazardTelemetryGrid({
   sparklines,
   metricDeltas,
 }: HazardTelemetryGridProps) {
-  const rainScore = Number(risk?.extreme_rainfall) || 78;
-  const floodScore = Number(risk?.flash_flood) || 64;
-  const slideScore = Number(risk?.landslide) || 49;
-  const riverDischarge = metricDeltas?.riverDischarge ?? Number(risk?.inputs?.water_level) ?? 358.7;
-  const riverRiseScore = Math.min(95, Math.max(25, Math.round(riverDischarge > 100 ? 58 : 36)));
+  const rainScore = risk?.extreme_rainfall !== undefined ? Math.round(risk.extreme_rainfall) : 5;
+  const floodScore = risk?.flash_flood !== undefined ? Math.round(risk.flash_flood) : 12;
+  const slideScore = risk?.landslide !== undefined ? Math.round(risk.landslide) : 24;
+  const riverDischarge = metricDeltas?.riverDischarge ?? Number(risk?.inputs?.water_level ?? 2.1);
+  const riverRiseScore = Math.min(95, Math.max(10, Math.round(riverDischarge > 100 ? 58 : Math.max(15, riverDischarge * 4))));
 
-  const rainSvg = pointsToSvg(sparklines?.rain || [74, 76, 75, 78, 79, 78, 80, 78]);
-  const floodSvg = pointsToSvg(sparklines?.flood || [60, 62, 63, 64, 65, 64, 65, 64]);
-  const slideSvg = pointsToSvg(sparklines?.slide || [48, 49, 49, 48, 49, 50, 49, 49]);
-  const riverSvg = pointsToSvg(sparklines?.river || [54, 55, 56, 57, 58, 59, 58, 58]);
+  const rainSvg = pointsToSvg(sparklines?.rain || [5, 5, 6, 6, 5, 6, 5, 5]);
+  const floodSvg = pointsToSvg(sparklines?.flood || [12, 12, 13, 13, 12, 13, 12, 12]);
+  const slideSvg = pointsToSvg(sparklines?.slide || [24, 24, 25, 24, 25, 24, 24, 24]);
+  const riverSvg = pointsToSvg(sparklines?.river || [2.1, 2.1, 2.2, 2.1, 2.2, 2.1, 2.1, 2.1]);
 
   return (
     <section className="flex flex-col gap-3">
@@ -92,7 +92,7 @@ export default function HazardTelemetryGrid({
               Rainfall Surge
             </span>
             <span className="px-2 py-0.5 rounded bg-[#BA1A1A]/15 text-[#BA1A1A] font-mono text-[10px] font-bold uppercase tracking-wider">
-              {rainScore >= 70 ? "High" : "Elevated"}
+              {rainScore >= 70 ? "High" : rainScore >= 35 ? "Elevated" : "Low Risk"}
             </span>
           </div>
 
@@ -103,7 +103,7 @@ export default function HazardTelemetryGrid({
               </span>
               <span className="text-xs font-bold text-[#BA1A1A] flex items-center gap-0.5 font-mono">
                 <TrendingUp className="w-3.5 h-3.5" />
-                <span>{metricDeltas?.rainRate ? `${metricDeltas.rainRate} mm/h` : "Surge"}</span>
+                <span>{metricDeltas?.rainRate ? `${metricDeltas.rainRate} mm/h` : "0.0 mm/h"}</span>
               </span>
             </div>
 
@@ -121,7 +121,7 @@ export default function HazardTelemetryGrid({
           </div>
 
           <p className="text-[11px] text-[#5D6B63] line-clamp-2 leading-tight">
-            Deep convective cloud cell over Dharamshala & Kangra ridge (&gt;45 mm/h).
+            {metricDeltas?.rainRate ? `Active rain recorded at ${metricDeltas.rainRate} mm/h; localized mountain monitoring active.` : "Clear conditions; no heavy precipitation detected in the mountain basin."}
           </p>
         </div>
 
@@ -133,7 +133,7 @@ export default function HazardTelemetryGrid({
               Flash Flood
             </span>
             <span className="px-2 py-0.5 rounded bg-[#ED8936]/20 text-[#AB5A14] font-mono text-[10px] font-bold uppercase tracking-wider">
-              {floodScore >= 60 ? "Elevated" : "Moderate"}
+              {floodScore >= 60 ? "Elevated" : floodScore >= 30 ? "Moderate" : "Low Risk"}
             </span>
           </div>
 
@@ -144,7 +144,7 @@ export default function HazardTelemetryGrid({
               </span>
               <span className="text-xs font-bold text-[#AB5A14] flex items-center gap-0.5 font-mono">
                 <TrendingUp className="w-3.5 h-3.5" />
-                <span>Rising</span>
+                <span>{floodScore >= 50 ? "Rising" : "Steady"}</span>
               </span>
             </div>
 
@@ -162,7 +162,7 @@ export default function HazardTelemetryGrid({
           </div>
 
           <p className="text-[11px] text-[#5D6B63] line-clamp-2 leading-tight">
-            Beas & Neugal tributary rapid runoff surge near Pandoh upstream.
+            {floodScore > 50 ? "Elevated runoff surge monitored in regional tributary channels." : "Riverbanks stable; stream runoff within standard absorption limits."}
           </p>
         </div>
 
@@ -174,7 +174,7 @@ export default function HazardTelemetryGrid({
               Landslide Risk
             </span>
             <span className="px-2 py-0.5 rounded bg-[#DCAE37]/20 text-[#8C6B12] font-mono text-[10px] font-bold uppercase tracking-wider">
-              {slideScore >= 50 ? "Elevated" : "Moderate"}
+              {slideScore >= 50 ? "Elevated" : slideScore >= 30 ? "Moderate" : "Low Risk"}
             </span>
           </div>
 
@@ -203,7 +203,7 @@ export default function HazardTelemetryGrid({
           </div>
 
           <p className="text-[11px] text-[#5D6B63] line-clamp-2 leading-tight">
-            Soil saturation 82% in Dharamshala-McLeodganj corridor; boulder clearance active.
+            Soil saturation {metricDeltas?.soilMoisturePct ?? 45}%; slope shear stability within safe parameters.
           </p>
         </div>
 
@@ -244,7 +244,7 @@ export default function HazardTelemetryGrid({
           </div>
 
           <p className="text-[11px] text-[#5D6B63] line-clamp-2 leading-tight">
-            Bhuntar gauge steady; Pandoh inflow currently at {riverDischarge.toFixed(1)} m³/s.
+            Live Open-Meteo flood telemetry; regional basin discharge active at {riverDischarge.toFixed(1)} m³/s.
           </p>
         </div>
       </div>

@@ -127,49 +127,6 @@ export default function FourSignalsBanner({
         </div>
       </div>
 
-      {/* Cost of Fragmentation Stat Bar */}
-      <div className="p-4 rounded-xl bg-[#012016] text-white flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-[#BA1A1A] text-white shrink-0">
-            <ShieldAlert className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-xs font-mono uppercase tracking-wider text-[#B0F1CB] font-bold block">
-              The Cost of Fragmented Intelligence
-            </span>
-            <span className="text-xs text-[#EBF0ED]/80">
-              Why predictive impact modeling matters for Himachal Pradesh
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3 w-full sm:w-auto text-center divide-x divide-white/10">
-          <div className="px-3">
-            <span className="text-xl sm:text-2xl font-black text-[#FFE088] tabular-nums block">
-              72
-            </span>
-            <span className="text-[10px] text-[#EBF0ED]/70 leading-tight block">
-              Lives lost in 2023 floods
-            </span>
-          </div>
-          <div className="px-3">
-            <span className="text-xl sm:text-2xl font-black text-[#FFDAD6] tabular-nums block">
-              100+
-            </span>
-            <span className="text-[10px] text-[#EBF0ED]/70 leading-tight block">
-              Reported missing
-            </span>
-          </div>
-          <div className="px-3">
-            <span className="text-xl sm:text-2xl font-black text-[#B0F1CB] tabular-nums block">
-              $1.2B+
-            </span>
-            <span className="text-[10px] text-[#EBF0ED]/70 leading-tight block">
-              Estimated losses
-            </span>
-          </div>
-        </div>
-      </div>
     </section>
   );
 }

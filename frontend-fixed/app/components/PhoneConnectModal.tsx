@@ -24,18 +24,32 @@ export default function PhoneConnectModal({
   const [copied, setCopied] = useState(false);
   const [currentHost, setCurrentHost] = useState("");
   const [customIp, setCustomIp] = useState("");
+  const [detectedIps, setDetectedIps] = useState<{ interface: string; ip: string }[]>([]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hostname = window.location.hostname;
-      setCurrentHost(hostname === "localhost" ? "127.0.0.1" : hostname);
-    }
+    fetch("/api/system-info")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ips && data.ips.length > 0) {
+          setDetectedIps(data.ips);
+          setCurrentHost(data.ips[0].ip);
+        } else if (typeof window !== "undefined") {
+          const hostname = window.location.hostname;
+          setCurrentHost(hostname === "localhost" ? "127.0.0.1" : hostname);
+        }
+      })
+      .catch(() => {
+        if (typeof window !== "undefined") {
+          const hostname = window.location.hostname;
+          setCurrentHost(hostname === "localhost" ? "127.0.0.1" : hostname);
+        }
+      });
   }, []);
 
   if (!isOpen) return null;
 
   const targetIp = customIp.trim() || currentHost || "192.168.1.10";
-  const mobileUrl = `http://${targetIp}:3000`;
+  const mobileUrl = `http://${targetIp}:3001`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
     mobileUrl
   )}&bgcolor=F7FAF8&color=012016&margin=10`;
@@ -61,7 +75,7 @@ export default function PhoneConnectModal({
               <h3 className="text-base font-black tracking-tight flex items-center gap-1.5">
                 Run HimAlert on Your Phone
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#B0F1CB] text-[#002114] font-bold">
-                  0.0.0.0:3000
+                  0.0.0.0:3001
                 </span>
               </h3>
               <p className="text-xs text-[#B0F1CB]/80">
@@ -137,6 +151,28 @@ export default function PhoneConnectModal({
                 If you know your PC's IP, enter it below to generate a direct QR code:
               </li>
             </ol>
+            {detectedIps.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                <span className="text-[10px] font-bold text-[#5D6B63]">Detected:</span>
+                {detectedIps.map((net) => (
+                  <button
+                    key={net.ip}
+                    type="button"
+                    onClick={() => {
+                      setCustomIp(net.ip);
+                      setCurrentHost(net.ip);
+                    }}
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition-colors ${
+                      (customIp || currentHost) === net.ip
+                        ? "bg-[#012016] text-white border-[#012016]"
+                        : "bg-white text-[#012016] border-[#DCE4DF] hover:bg-[#EBF0ED]"
+                    }`}
+                  >
+                    {net.interface}: {net.ip}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[11px] font-mono text-[#012016]">http://</span>
               <input

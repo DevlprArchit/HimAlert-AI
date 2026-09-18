@@ -15,7 +15,8 @@ import {
   ShieldAlert,
   Waves,
   MapPin,
-  Download
+  Download,
+  Key
 } from "lucide-react";
 
 interface ActionItem {
@@ -37,6 +38,10 @@ interface HimAlertChatbotProps {
   currentLocation: string;
   onSelectTab?: (tab: string) => void;
   onSelectLocation?: (name: string) => void;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  initialPrompt?: string | null;
+  onClearInitialPrompt?: () => void;
 }
 
 const DEFAULT_SUGGESTIONS = [
@@ -52,12 +57,40 @@ export default function HimAlertChatbot({
   currentLocation,
   onSelectTab,
   onSelectLocation,
+  isOpen: externalIsOpen,
+  onOpenChange,
+  initialPrompt,
+  onClearInitialPrompt,
 }: HimAlertChatbotProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = (open: boolean) => {
+    setInternalIsOpen(open);
+    onOpenChange?.(open);
+  };
   const [isExpanded, setIsExpanded] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>(DEFAULT_SUGGESTIONS);
+  const [apiKey, setApiKey] = useState<string>("");
+  const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState("");
+
+  useEffect(() => {
+    try {
+      const savedKey = localStorage.getItem("himalert_gemini_api_key") || "";
+      setApiKey(savedKey);
+      setApiKeyInput(savedKey);
+    } catch (e) {}
+  }, []);
+
+  const handleSaveApiKey = () => {
+    try {
+      localStorage.setItem("himalert_gemini_api_key", apiKeyInput.trim());
+      setApiKey(apiKeyInput.trim());
+      setIsKeyModalOpen(false);
+    } catch (e) {}
+  };
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -78,7 +111,7 @@ Try asking one of the suggested questions below!`,
         { label: "Historical Flood Archive", action: "ask", value: "Show historical flood events in Mandi" },
         { label: "River Basin Gauges", action: "switch_tab", value: "rivers" },
       ],
-      sources: ["C:\\Users\\archi\\Downloads\\Csv (16 Datasets)", "Live Sensor Telemetry"],
+      sources: ["HPSDMA Historical Archives (16 Datasets)", "Live Sensor Telemetry"],
       timestamp: "Just now",
     },
   ]);
@@ -90,6 +123,15 @@ Try asking one of the suggested questions below!`,
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isOpen]);
+
+  // Handle external prompt injection (e.g. from Mountain Ground Wetness Simulator)
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim()) {
+      setIsOpen(true);
+      handleSendMessage(initialPrompt.trim());
+      onClearInitialPrompt?.();
+    }
+  }, [initialPrompt]);
 
   // Fetch remote suggestions if available
   useEffect(() => {
@@ -122,28 +164,50 @@ Try asking one of the suggested questions below!`,
     setLoading(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: text.trim(),
-          location: currentLocation,
-        }),
-      });
+      let data = null;
+      // 1. Try local Next.js route with Google Gemini integration
+      try {
+        const nextRes = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: text.trim(),
+            location: currentLocation,
+            apiKey: apiKey.trim(),
+          }),
+        });
+        if (nextRes.ok) {
+          data = await nextRes.json();
+        }
+      } catch (e) {}
 
-      if (res.ok) {
-        const data = await res.json();
+      // 2. Fallback to FastAPI backend if Next.js route was not available
+      if (!data) {
+        const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"}/api/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: text.trim(),
+            location: currentLocation,
+          }),
+        });
+        if (backendRes.ok) {
+          data = await backendRes.json();
+        }
+      }
+
+      if (data && data.reply) {
         const copilotMsg: ChatMessage = {
           id: `copilot-${Date.now()}`,
           sender: "copilot",
-          text: data.reply || "No answer generated.",
+          text: data.reply,
           actions: data.actions || [],
           sources: data.sources || [],
           timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
         };
         setMessages((prev) => [...prev, copilotMsg]);
       } else {
-        throw new Error("API returned non-200");
+        throw new Error("No response from AI services");
       }
     } catch (err) {
       // Local fallback in case backend is offline
@@ -151,7 +215,7 @@ Try asking one of the suggested questions below!`,
         id: `copilot-fallback-${Date.now()}`,
         sender: "copilot",
         text: `### 🤖 HimAlert AI Copilot (Offline Cache)
-Based on the indexed historical datasets in **\`C:\\Users\\archi\\Downloads\\Csv\`** and the live sensor telemetry:
+Based on the indexed historical datasets in **HPSDMA Archive Corpus** and the live sensor telemetry:
 - **Analyzed Query:** "${text.trim()}"
 - **Historical Flood Training Corpus:** 137 records verified across Mandi, Kullu, Chamba, and Kangra.
 - **Live Condition (${currentLocation}):** High convective cloud dynamics with active flash flood warning in Mandi & Kullu basins (>45 mm/h).
@@ -160,7 +224,7 @@ Based on the indexed historical datasets in **\`C:\\Users\\archi\\Downloads\\Csv
           { label: "Open GIS Radar", action: "switch_tab", value: "map" },
           { label: "View Rivers", action: "switch_tab", value: "rivers" },
         ],
-        sources: ["C:\\Users\\archi\\Downloads\\Csv", "Local Deterministic Cache"],
+        sources: ["HPSDMA Historical Datasets", "Local Deterministic Cache"],
         timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
       };
       setMessages((prev) => [...prev, fallbackMsg]);
@@ -317,25 +381,24 @@ Based on the indexed historical datasets in **\`C:\\Users\\archi\\Downloads\\Csv
     <>
       {/* 1. Floating Tactical Launcher Dock */}
       {!isOpen && (
-        <aside aria-label="HimAlert Copilot Dock" className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50">
+        <aside aria-label="HimAlert Copilot Dock" className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 flex flex-col items-end">
+          {/* Tooltip speech bubble */}
+          <div className="mb-2 bg-white text-[#012016] text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-lg border border-[#DCE4DF] flex items-center gap-1.5 relative pointer-events-none">
+            <span>✨ Ask Gemini 3.5 Assistant</span>
+            <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-b border-r border-[#DCE4DF] rotate-45"></div>
+          </div>
           <button
+            aria-label="Toggle HimAlert AI Copilot"
             onClick={() => setIsOpen(true)}
-            className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-[#012016] text-white shadow-2xl border-2 border-[#B0F1CB]/40 hover:border-[#B0F1CB] transition-all hover:scale-105 active:scale-95 group"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white text-[#012016] shadow-xl border border-[#DCE4DF] hover:border-[#2C694C] transition-all hover:scale-105 active:scale-95 group"
           >
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B0F1CB] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-[#2C694C]"></span>
-            </span>
-            <Bot className="w-5 h-5 text-[#B0F1CB] group-hover:rotate-12 transition-transform" />
-            <div className="flex flex-col text-left">
-              <span className="text-xs font-bold tracking-tight text-white flex items-center gap-1">
-                HimAlert Copilot
-                <span className="px-1.5 py-0.2 bg-[#B0F1CB] text-[#002112] text-[9px] font-black rounded-full font-mono uppercase">
-                  AI CSV
-                </span>
-              </span>
-              <span className="text-[10px] text-[#B0F1CB]/80 font-mono">Ask any question &rarr;</span>
+            <div className="w-5 h-5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center">
+              <Bot className="w-3.5 h-3.5 text-blue-600" />
             </div>
+            <span className="text-xs font-bold text-[#012016]">Disaster Intelligence Analyst</span>
+            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[9px] font-bold rounded font-mono uppercase">
+              SYSTEM
+            </span>
           </button>
         </aside>
       )}
@@ -358,18 +421,26 @@ Based on the indexed historical datasets in **\`C:\\Users\\archi\\Downloads\\Csv
               </div>
               <div className="min-w-0">
                 <h3 className="text-sm font-bold text-white flex items-center gap-1.5 truncate">
-                  <span>HimAlert AI Copilot</span>
+                  <span>Disaster Intelligence Analyst</span>
                   <span className="px-1.5 py-0.2 rounded bg-[#2C694C] text-[#B0F1CB] text-[9px] font-mono font-bold uppercase">
-                    LIVE CSV
+                    {apiKey ? "GEMINI ACTIVE" : "SYSTEM"}
                   </span>
                 </h3>
                 <p className="text-[10px] text-[#B0F1CB]/80 font-mono truncate">
-                  Grounded on 700k+ Hourly Records & Live Telemetry
+                  HimSahayak AI • {apiKey ? "Google Gemini 1.5 Grounded" : "Deterministic Engine (No Key)"}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
+              <button
+                onClick={() => setIsKeyModalOpen(true)}
+                className="px-2 py-1 rounded bg-[#17352A] hover:bg-[#2C694C] text-[10px] font-mono text-[#B0F1CB] flex items-center gap-1 transition-colors border border-[#2C694C]/40"
+                title="Configure Gemini API Key"
+              >
+                <Key className="w-3 h-3" />
+                <span>{apiKey ? "Key Set" : "Add Key"}</span>
+              </button>
               <button
                 onClick={handleClearHistory}
                 className="w-7 h-7 rounded hover:bg-[#17352A] text-[#DCE4DF] flex items-center justify-center transition-colors"
@@ -393,6 +464,55 @@ Based on the indexed historical datasets in **\`C:\\Users\\archi\\Downloads\\Csv
               </button>
             </div>
           </div>
+
+          {/* Gemini API Key Modal Dialog */}
+          {isKeyModalOpen && (
+            <div className="absolute inset-0 bg-[#012016]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 rounded-2xl">
+              <div className="bg-white rounded-xl p-5 border border-[#DCE4DF] max-w-sm w-full shadow-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Key className="w-4 h-4 text-[#2C694C]" />
+                    <h4 className="text-sm font-bold text-[#012016]">Google Gemini API Key</h4>
+                  </div>
+                  <button
+                    onClick={() => setIsKeyModalOpen(false)}
+                    className="p-1 text-[#5D6B63] hover:text-[#012016]"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-xs text-[#5D6B63] leading-relaxed">
+                  Enter your Google AI Gemini API key to activate real-time generative intelligence for HimAlert.
+                </p>
+                <input
+                  type="password"
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="w-full bg-[#F7FAF8] border border-[#DCE4DF] text-[#012016] text-xs rounded-lg px-3 py-2 font-mono focus:outline-none focus:border-[#2C694C]"
+                />
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem("himalert_gemini_api_key");
+                      setApiKey("");
+                      setApiKeyInput("");
+                      setIsKeyModalOpen(false);
+                    }}
+                    className="px-3 py-1.5 text-xs text-[#BA1A1A] hover:bg-[#FFDAD6] rounded-lg transition-colors"
+                  >
+                    Clear Key
+                  </button>
+                  <button
+                    onClick={handleSaveApiKey}
+                    className="px-4 py-1.5 text-xs font-bold bg-[#012016] hover:bg-[#17352A] text-white rounded-lg transition-colors shadow-sm"
+                  >
+                    Save Key
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Quick Suggestions Strip */}
           <div className="bg-[#F7FAF8] border-b border-[#DCE4DF] px-3 py-2 overflow-x-auto flex items-center gap-1.5 no-scrollbar shrink-0">
